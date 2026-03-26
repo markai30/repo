@@ -53,7 +53,7 @@
         {
             "id": "missav",
             "name": "MissAV 1",
-            "version": "1.0.9",
+            "version": "1.1.0",
             "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/missav_plugin.js",
             "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/missav.ico"
         },
