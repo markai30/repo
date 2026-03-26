@@ -92,8 +92,12 @@ function getUrlDetail(episodeId) {
     if (episodeId.indexOf("http") === 0) {
         return episodeId;
     }
-    // Fallback: nếu là slug thì tìm qua API
-    return BASE_API + "?ac=detail&wd=" + encodeURIComponent(episodeId) + "&pagesize=1";
+    // Nếu là numeric id → dùng ids= parameter (chính xác nhất)
+    if (/^\d+$/.test(episodeId)) {
+        return BASE_API + "?ac=detail&ids=" + episodeId;
+    }
+    // Fallback: nếu là slug thì dùng code= parameter (tìm theo mã phim)
+    return BASE_API + "?ac=detail&code=" + encodeURIComponent(episodeId) + "&pagesize=1";
 }
 
 function getUrlCategories() { return ""; }
@@ -111,14 +115,14 @@ function parseListResponse(apiResponseJson) {
 
         var movies = list.map(function (item) {
             return {
-                id: item.slug || item.movie_code || "",
+                id: String(item.id || ""),  // Dùng numeric API id → getUrlDetail sẽ dùng ids= parameter
                 title: item.name || "",
                 posterUrl: item.poster_url || "",
                 backdropUrl: item.thumb_url || "",
                 year: parseInt(item.year) || 0,
                 quality: item.quality || "HD",
                 episode_current: item.status || "",
-                lang: ""
+                lang: item.movie_code || ""  // Hiện mã phim dưới title
             };
         });
 

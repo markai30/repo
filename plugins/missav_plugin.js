@@ -525,7 +525,7 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+function parseMovieDetail(html, pageUrl) {
     // Normalize HTML: strip missav_media- prefix từ CSS class
     html = PluginUtils.normalizeHtml(html);
     try {
@@ -729,7 +729,7 @@ function parseMovieDetail(html) {
             // IMPORTANT: Dùng URL gốc thay vì m3u8 URL trực tiếp
             // Để PlayerViewModel gọi getStreamLink() → headers Referer được gắn
             // surrit.com yêu cầu Referer header, nếu gọi trực tiếp sẽ bị 403
-            var episodeId = url || streamUrl;
+            var episodeId = pageUrl || streamUrl;
             servers.push({
                 name: "Stream",
                 episodes: [{
@@ -799,9 +799,9 @@ function parseDetailResponse(html) {
     // Strategy 2: Direct domain scan
     if (!uuid) {
         var m = html.match(/surrit\.com\/([0-9a-f-]{36})/i) ||
-                html.match(/sixyik\.com\/([0-9a-f-]{36})/i) ||
-                html.match(/nineyu\.com\/([0-9a-f-]{36})/i) ||
-                html.match(/fourhoi\.com\/([0-9a-f-]{36})/i);
+            html.match(/sixyik\.com\/([0-9a-f-]{36})/i) ||
+            html.match(/nineyu\.com\/([0-9a-f-]{36})/i) ||
+            html.match(/fourhoi\.com\/([0-9a-f-]{36})/i);
         if (m) uuid = m[1];
     }
 
