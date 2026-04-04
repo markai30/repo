@@ -6,7 +6,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "avdbapi",
         "name": "AVDB JAV",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "baseUrl": "https://avdbapi.com",
         "iconUrl": "https://avdbapi.com/favicon.ico",
         "isEnabled": true,
