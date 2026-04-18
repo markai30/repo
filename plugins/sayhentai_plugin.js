@@ -6,9 +6,9 @@ function getManifest() {
     return JSON.stringify({
         "id": "sayhentai",
         "name": "SayHentai",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "baseUrl": "https://sayhentai.vc",
-        "iconUrl": "https://sayhentai.world/favicon-32x32.png",
+        "iconUrl": "https://sayhentai.vc/favicon-32x32.png",
         "isEnabled": true,
         "isAdult": true,
         "type": "MANGA",
