@@ -153,7 +153,11 @@ function parseMovieDetail(html, url) {
         var title = (html.match(/<meta property="og:title" content="([^"]+)"/i) || [])[1] || "";
         var poster = (html.match(/<meta property="og:image" content="([^"]+)"/i) || [])[1] || "";
         var description = (html.match(/<meta property="og:description" content="([^"]+)"/i) || [])[1] || "";
-        var movieUrl = (html.match(/<meta property="og:url" content="([^"]+)"/i) || [])[1] || "";
+        var movieUrl = (html.match(/<meta property="og:url" content="([^"]+)"/i) || [])[1] || url;
+        
+        // Tìm Post ID (thường có trong shortlink hoặc các biến script)
+        var postIdMatch = html.match(/\/\?p=(\d+)/) || html.match(/post-id=["'](\d+)/) || html.match(/postId\s*:\s*(\d+)/);
+        var postId = postIdMatch ? postIdMatch[1] : "";
 
         var servers = [];
         var usedServer = {};
@@ -189,8 +193,8 @@ function parseMovieDetail(html, url) {
             var episodes = [];
             for (var j = 1; j <= epCount; j++) {
                 episodes.push({
-                    // QUAN TRỌNG: Thêm prefix play:// để App biết đây là hành động PLAY
-                    id: "play://" + movieUrl + "?server=" + encodeURIComponent(serverId) + "&tap=" + j,
+                    // QUAN TRỌNG: Lưu đầy đủ info để parseDetailResponse có thể dựng link player chuẩn
+                    id: "play://" + movieUrl + "?id=" + postId + "&server=" + encodeURIComponent(serverId) + "&tap=" + j,
                     name: epCount === 1 ? "Full" : "Tập " + j,
                     slug: String(j)
                 });
@@ -231,11 +235,34 @@ function parseMovieDetail(html, url) {
 
 function parseDetailResponse(html, url) {
     try {
-        // Ưu tiên iframe (embed player)
-        var iframe = html.match(/<iframe[^>]+src="([^"]+)"/i);
-        if (iframe) {
-            var embedUrl = iframe[1];
+        // Nếu URL là play://, ta thử dựng link player trực tiếp của site (thường là /p/player.html)
+        // để chỉ hiện khung player, không hiện cả trang web.
+        if (url.includes("?id=") && url.includes("&server=")) {
+            var postId = (url.match(/id=(\d+)/) || [])[1];
+            var server = (url.match(/server=([^&]+)/) || [])[1];
+            var tap = (url.match(/tap=(\d+)/) || [])[1];
+            
+            if (postId && server && tap) {
+                var playerUrl = BASE_URL + "/p/player.html?id=" + postId + "&server=" + server + "&tap=" + tap;
+                return JSON.stringify({
+                    url: playerUrl,
+                    headers: { "Referer": BASE_URL + "/" },
+                    isEmbed: true
+                });
+            }
+        }
+
+        // 1. Tìm iframe thực tế (thường nằm trong class iframe-wrapper)
+        var iframeMatch = html.match(/<iframe[^>]*src="([^"]+)"/i);
+        if (iframeMatch) {
+            var embedUrl = iframeMatch[1];
             if (embedUrl.startsWith("//")) embedUrl = "https:" + embedUrl;
+            
+            // Nếu iframe src vẫn là trang hiện tại hoặc rỗng, ta trả về chính nó để WebView tự xử lý
+            if (embedUrl === url || embedUrl.length < 5) {
+                return JSON.stringify({ url: url, isEmbed: true, headers: { "Referer": BASE_URL } });
+            }
+
             return JSON.stringify({
                 url: embedUrl,
                 headers: { "Referer": BASE_URL },
@@ -243,21 +270,15 @@ function parseDetailResponse(html, url) {
             });
         }
 
-        // Tìm trực tiếp link m3u8
+        // 2. Tìm link m3u8 trực tiếp nếu có
         var m3u8 = html.match(/(https?:\/\/[^"' ]+\.m3u8[^"' ]*)/i);
         if (m3u8) {
-            return JSON.stringify({
-                url: m3u8[1],
-                mimeType: "application/x-mpegURL",
-                isEmbed: false
-            });
+            return JSON.stringify({ url: m3u8[1], mimeType: "application/x-mpegURL", isEmbed: false });
         }
 
-        // Trả về chính URL để Interceptor tự xử lý nếu không tìm thấy gì
+        // 3. Fallback: Trả về URL để App's Interceptor xử lý
         return JSON.stringify({ url: url, isEmbed: true, headers: { "Referer": BASE_URL } });
-    } catch (e) {
-        return JSON.stringify({ url: "", isEmbed: false });
-    }
+    } catch (e) { return JSON.stringify({ url: "", isEmbed: false }); }
 }
 
 function parseEmbedResponse(html, sourceUrl) {
