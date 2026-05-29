@@ -12,7 +12,7 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": false,
         "type": "MOVIE",
-        "playerType": "embed",
+        "playerType": "embedtoexoplay",
         "layoutType": "VERTICAL"
     });
 }
