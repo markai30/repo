@@ -44,6 +44,13 @@
             "iconUrl": "https://www.sieutamphim.pro/posts/2024/06/cropped-logosieutamphim-192x192.png"
         },
         {
+            "id": "phimhdcs",
+            "name": "PhimHDCSS",
+            "version": "1.0.4",
+            "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/phimhdcs_plugin.js",
+            "iconUrl": "https://phimhdcss.com/favicon.ico"
+        }        
+        {
             "id": "vmttv",
             "name": "VMT TV",
             "version": "1.0.2",
