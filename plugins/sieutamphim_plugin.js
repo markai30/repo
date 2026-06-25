@@ -12,7 +12,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "sieutamphim",
         "name": "Sưu Tầm Phim",
-        "version": "1.0.2",
+        "version": "1.0.6",
         "baseUrl": "https://www.sieutamphim.pro",
         "iconUrl": "https://www.sieutamphim.pro/posts/2024/06/cropped-logosieutamphim-192x192.png",
         "isEnabled": true,
@@ -27,6 +27,16 @@ function log(msg) {
     if (typeof nativeLog !== 'undefined') {
         nativeLog("[STPhim] " + msg);
     }
+}
+
+function getSlugFromUrl(url) {
+    if (!url) return "";
+    var cleanUrl = url.split("?")[0];
+    var match = cleanUrl.match(/\/([^\/]+)\.html$/i);
+    if (match) return match[1];
+    var parts = cleanUrl.split("/");
+    var last = parts[parts.length - 1] || parts[parts.length - 2] || "";
+    return last.replace(".html", "");
 }
 
 // ========================================================
@@ -87,12 +97,18 @@ function getUrlSearch(keyword, filtersJson) {
 
 function getUrlDetail(id) {
     log("Resolving ID: " + id);
-    if (id && id.startsWith("play-")) {
+    if (!id) return "";
+    if (id.startsWith("play-")) {
         var resolved = id.replace("play-", "");
         log("Resolved Stream ID to: " + resolved);
         return resolved;
     }
-    return id.startsWith("http") ? id : BASE_URL + "/" + id;
+    if (id.startsWith("http")) {
+        return id;
+    }
+    var wpUrl = BASE_URL + "/wp-json/wp/v2/posts?slug=" + encodeURIComponent(id);
+    log("Resolved Slug to WordPress REST API: " + wpUrl);
+    return wpUrl;
 }
 
 // ========================================================
@@ -128,7 +144,7 @@ function parseListResponse(html) {
             if (poster.startsWith("//")) poster = "https:" + poster;
 
             items.push({
-                id: url,
+                id: getSlugFromUrl(url),
                 title: title,
                 posterUrl: poster
             });
@@ -158,30 +174,57 @@ function parseMovieDetail(html, url) {
         return JSON.stringify({ id: url, servers: [] });
     }
     try {
-        var title = (html.match(/<meta property="og:title" content="([^"]+)"/i) || [])[1] || "";
-        var poster = (html.match(/<meta property="og:image" content="([^"]+)"/i) || [])[1] || "";
-        var description = (html.match(/<meta property="og:description" content="([^"]+)"/i) || [])[1] || "";
-        var movieUrl = (html.match(/<meta property="og:url" content="([^"]+)"/i) || [])[1] || url;
-        
-        // Tìm Post ID (thường có trong shortlink hoặc các biến script)
-        var postIdMatch = html.match(/\/\?p=(\d+)/) || html.match(/post-id=["'](\d+)/) || html.match(/postId\s*:\s*(\d+)/) || html.match(/post-id:(\d+)/);
-        var postId = postIdMatch ? postIdMatch[1] : "";
-        log("Found Movie: " + title + " (PostID: " + postId + ")");
+        var isWpApi = url && url.includes("/wp-json/wp/v2/posts");
+        var title = "";
+        var poster = "";
+        var description = "";
+        var movieUrl = url;
+        var postId = "";
+        var contentHtml = html;
 
+        if (isWpApi) {
+            log("Parsing detail from WordPress REST API JSON response");
+            var posts = JSON.parse(html);
+            if (!posts || posts.length === 0) {
+                log("No WordPress post found for this slug");
+                return JSON.stringify({ servers: [] });
+            }
+            var post = posts[0];
+            title = post.title ? post.title.rendered : "";
+            movieUrl = post.link || url;
+            postId = String(post.id || "");
+            contentHtml = post.content ? post.content.rendered : "";
+            
+            description = post.excerpt ? post.excerpt.rendered.replace(/<[^>]*>/g, "").trim() : "";
+            var imgMatch = contentHtml.match(/<img[^>]*src="([^"]+)"/i);
+            poster = imgMatch ? imgMatch[1] : "";
+            log("Parsed Title from WP API: " + title + " (PostID: " + postId + ")");
+        } else {
+            title = (html.match(/<meta property="og:title" content="([^"]+)"/i) || [])[1] || "";
+            poster = (html.match(/<meta property="og:image" content="([^"]+)"/i) || [])[1] || "";
+            description = (html.match(/<meta property="og:description" content="([^"]+)"/i) || [])[1] || "";
+            movieUrl = (html.match(/<meta property="og:url" content="([^"]+)"/i) || [])[1] || url;
+            
+            var postIdMatch = html.match(/\/\?p=(\d+)/) || html.match(/post-id=["'](\d+)/) || html.match(/postId\s*:\s*(\d+)/) || html.match(/post-id:(\d+)/);
+            postId = postIdMatch ? postIdMatch[1] : "";
+            log("Parsed Title from HTML: " + title + " (PostID: " + postId + ")");
+        }
+
+        var slugId = getSlugFromUrl(movieUrl);
         var servers = [];
         var usedServer = {};
 
-        // Quét toàn bộ HTML để tìm server
+        // Quét toàn bộ HTML/Content để tìm server
         var groupRegex = /data-server=['"]([^'"]+)['"]/gi;
         var m;
-        while ((m = groupRegex.exec(html)) !== null) {
+        while ((m = groupRegex.exec(contentHtml)) !== null) {
             var serverId = m[1];
             if (usedServer[serverId]) continue;
             usedServer[serverId] = true;
 
             // Tìm block chứa data-episodes của server này (hỗ trợ bọc bởi cả nháy đơn lẫn nháy kép)
-            var epBlockRegex = new RegExp('data-server=["\']' + serverId + '["\'][\\s\\S]*?data-episodes=([\'"])([\\s\\S]*?)\\1', "i");
-            var epBlockMatch = html.match(epBlockRegex);
+            var epBlockRegex = new RegExp('data-server=["\']' + serverId + '["\'][\\s\\S]*?data-episodes=([\'"])([\\s\\S]*?)\\2', "i");
+            var epBlockMatch = contentHtml.match(epBlockRegex);
 
             var epCount = 0;
             if (epBlockMatch) {
@@ -216,12 +259,12 @@ function parseMovieDetail(html, url) {
         if (servers.length === 0) {
             servers.push({
                 name: "Mặc định",
-                episodes: [{ id: "play://" + movieUrl, name: "Full", slug: "full" }]
+                episodes: [{ id: "play-" + movieUrl + "?id=" + postId + "&server=hx&tap=1", name: "Full", slug: "full" }]
             });
         }
 
         return JSON.stringify({
-            id: movieUrl,
+            id: slugId,
             title: decodeHtmlEntities(title.replace(" - Siêu Tầm Phim", "").trim()),
             posterUrl: poster,
             backdropUrl: poster,
@@ -231,6 +274,7 @@ function parseMovieDetail(html, url) {
             status: "Hoàn thành"
         });
     } catch (e) {
+        log("Error in parseMovieDetail: " + e.message);
         return JSON.stringify({ servers: [] });
     }
 }
