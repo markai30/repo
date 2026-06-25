@@ -118,7 +118,7 @@
             "name": "OTruyen",
             "version": "1.0.2",
             "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/otruyen_plugin.js",
-            "iconUrl": "https://otruyenapi.com/favicon.ico"
+            "iconUrl": "https://docs.otruyenapi.com/favicon-32x32.png"
         },
         {
             "id": "sayhentai",
