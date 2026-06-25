@@ -12,7 +12,7 @@ function getManifest() {
     return JSON.stringify({
         "id": "sieutamphim",
         "name": "Sưu Tầm Phim",
-        "version": "1.0.2",
+        "version": "1.0.5",
         "baseUrl": "https://www.sieutamphim.pro",
         "iconUrl": "https://www.sieutamphim.pro/posts/2024/06/cropped-logosieutamphim-192x192.png",
         "isEnabled": true,
@@ -275,15 +275,29 @@ function parseDetailResponse(html, url) {
                                     isEmbed: false
                                 });
                             } else {
-                                // Tạo trang HTML bọc iframe của abyssplayer để tránh redirect bypass sang abyss.to
-                                var iframeHtml = '<html><body style="margin:0;padding:0;background:#000;"><iframe src="' + decrypted + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>';
-                                var base64Url = "data:text/html;base64," + base64Encode(iframeHtml);
+                                var isAbyss = decrypted.indexOf("abyssplayer.com") !== -1 || 
+                                              decrypted.indexOf("abyss.to") !== -1 || 
+                                              decrypted.indexOf("short.ink") !== -1 || 
+                                              decrypted.indexOf("short.icu") !== -1;
                                 
-                                return JSON.stringify({
-                                    url: base64Url,
-                                    isEmbed: true,
-                                    headers: { "Referer": BASE_URL + "/" }
-                                });
+                                if (isAbyss) {
+                                    // Tạo trang HTML bọc iframe của abyssplayer để tránh redirect bypass sang abyss.to
+                                    var iframeHtml = '<html><body style="margin:0;padding:0;background:#000;"><iframe src="' + decrypted + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>';
+                                    var base64Url = "data:text/html;base64," + base64Encode(iframeHtml);
+                                    
+                                    return JSON.stringify({
+                                        url: base64Url,
+                                        isEmbed: true,
+                                        headers: { "Referer": BASE_URL + "/" }
+                                    });
+                                } else {
+                                    // Các link khác (như blogger.com) trả về trực tiếp để tránh WebView chặn load data URL
+                                    return JSON.stringify({
+                                        url: decrypted,
+                                        isEmbed: true,
+                                        headers: { "Referer": BASE_URL + "/" }
+                                    });
+                                }
                             }
                         }
                         currentIndex++;
