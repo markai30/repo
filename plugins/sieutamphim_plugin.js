@@ -171,8 +171,7 @@ function parseMovieDetail(html, url) {
         var servers = [];
         var usedServer = {};
 
-        // Pattern bóc tách Server và Danh sách tập từ data-episodes (JSON encoded)
-        // Đây là phần sửa lỗi: Quét toàn bộ HTML để tìm server
+        // Quét toàn bộ HTML để tìm server
         var groupRegex = /data-server=['"]([^'"]+)['"]/gi;
         var m;
         while ((m = groupRegex.exec(html)) !== null) {
@@ -180,20 +179,18 @@ function parseMovieDetail(html, url) {
             if (usedServer[serverId]) continue;
             usedServer[serverId] = true;
 
-            // Tìm block chứa data-episodes của server này
-            var epBlockRegex = new RegExp('data-server=["\']' + serverId + '["\'][\\s\\S]*?data-episodes="([^"]+)"', "i");
+            // Tìm block chứa data-episodes của server này (hỗ trợ bọc bởi cả nháy đơn lẫn nháy kép)
+            var epBlockRegex = new RegExp('data-server=["\']' + serverId + '["\'][\\s\\S]*?data-episodes=([\'"])([\\s\\S]*?)\\1', "i");
             var epBlockMatch = html.match(epBlockRegex);
 
             var epCount = 0;
             if (epBlockMatch) {
-                var rawEpisodes = epBlockMatch[1].replace(/&quot;/g, '"');
-                try {
-                    var epJson = JSON.parse(rawEpisodes);
-                    epCount = Object.keys(epJson).length;
-                } catch (e) {
-                    // Fallback: Đếm số lượng key trong chuỗi encoded
-                    var matches = epBlockMatch[1].match(/&quot;\d+&quot;/g);
-                    epCount = matches ? matches.length : 1;
+                var rawEpisodes = epBlockMatch[2];
+                // Sử dụng regex trích xuất các tập phim theo cú pháp {"value1","value2"} của web nguồn
+                var epRegex = /{"([^"]+)","([^"]+)"}/g;
+                var epMatch;
+                while ((epMatch = epRegex.exec(rawEpisodes)) !== null) {
+                    epCount++;
                 }
             }
 
@@ -246,18 +243,49 @@ function parseDetailResponse(html, url) {
     log("Parsing Stream for: " + url);
     try {
         if (url.includes("?id=") && url.includes("&server=")) {
-            var postId = (url.match(/id=(\d+)/) || [])[1];
             var server = (url.match(/server=([^&]+)/) || [])[1];
-            var tap = (url.match(/tap=(\d+)/) || [])[1];
+            var tapStr = (url.match(/tap=(\d+)/) || [])[1];
+            var tap = parseInt(tapStr, 10);
             
-            if (postId && server && tap) {
-                var playerUrl = BASE_URL + "/p/player.html?id=" + postId + "&server=" + server + "&tap=" + tap;
-                log("Constructed Player URL: " + playerUrl);
-                return JSON.stringify({
-                    url: playerUrl,
-                    headers: { "Referer": BASE_URL + "/" },
-                    isEmbed: true
-                });
+            if (server && tap) {
+                // Tìm block chứa data-episodes của server tương ứng
+                var epBlockRegex = new RegExp('data-server=["\']' + server + '["\'][\\s\\S]*?data-episodes=([\'"])([\\s\\S]*?)\\1', "i");
+                var epBlockMatch = html.match(epBlockRegex);
+                
+                if (epBlockMatch) {
+                    var rawEpisodes = epBlockMatch[2];
+                    var epRegex = /{"([^"]+)","([^"]+)"}/g;
+                    var epMatch;
+                    var currentIndex = 1;
+                    while ((epMatch = epRegex.exec(rawEpisodes)) !== null) {
+                        if (currentIndex === tap) {
+                            var rawSrc = epMatch[1];
+                            // Giải mã XOR với khóa 42
+                            var decrypted = "";
+                            for (var i = 0; i < rawSrc.length; i++) {
+                                decrypted += String.fromCharCode(rawSrc.charCodeAt(i) ^ 42);
+                            }
+                            // Thay thế domain short.ink/short.icu
+                            decrypted = decrypted.replace(/https?:\/\/(short\.ink|short\.icu)\//g, "https://abyssplayer.com/");
+                            log("Decrypted Stream URL: " + decrypted);
+                            
+                            if (decrypted.indexOf(".m3u8") !== -1) {
+                                return JSON.stringify({
+                                    url: decrypted,
+                                    mimeType: "application/x-mpegURL",
+                                    isEmbed: false
+                                });
+                            } else {
+                                return JSON.stringify({
+                                    url: decrypted,
+                                    isEmbed: true,
+                                    headers: { "Referer": BASE_URL + "/" }
+                                });
+                            }
+                        }
+                        currentIndex++;
+                    }
+                }
             }
         }
 
