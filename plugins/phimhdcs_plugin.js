@@ -6,13 +6,21 @@ function getManifest() {
     return JSON.stringify({
         "id": "phimhdcs",
         "name": "PhimHDCS",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "baseUrl": "https://phimhdcss.com",
         "iconUrl": "https://phimhdcss.com/favicon.ico",
         "isEnabled": true,
         "playerType": "embed",
         "type": "MOVIE"
     });
+}
+
+function log(msg) {
+    if (typeof nativeLog !== 'undefined') {
+        nativeLog("[PhimHDCS] " + msg);
+    } else if (typeof console !== 'undefined' && console.log) {
+        console.log("[PhimHDCS] " + msg);
+    }
 }
 
 function getHomeSections() {
@@ -477,10 +485,10 @@ function parseDetailResponse(htmlContent, pageUrl) {
                 var decodedRealObj = decodeBase64(realObjMatch[1]);
                 if (decodedRealObj) {
                     oxData = JSON.parse(decodedRealObj);
-                    console.log('PHIMHDCS_DEBUG Found realObj in JS code successfully');
+                    log('PHIMHDCS_DEBUG Found realObj in JS code successfully');
                 }
             } catch (e) {
-                console.log('PHIMHDCS_DEBUG realObj parse error: ' + e);
+                log('PHIMHDCS_DEBUG realObj parse error: ' + e);
             }
         }
 
@@ -502,10 +510,10 @@ function parseDetailResponse(htmlContent, pageUrl) {
                     if (jsonEnd > 0) {
                         var jsonStr = htmlContent.substring(startIdx, jsonEnd);
                         oxData = JSON.parse(jsonStr);
-                        console.log('PHIMHDCS_DEBUG Found fallback _0xData successfully');
+                        log('PHIMHDCS_DEBUG Found fallback _0xData successfully');
                     }
                 } catch (e) {
-                    console.log('PHIMHDCS_DEBUG _0xData parse error: ' + e);
+                    log('PHIMHDCS_DEBUG _0xData parse error: ' + e);
                 }
             }
         }
@@ -546,9 +554,9 @@ function parseDetailResponse(htmlContent, pageUrl) {
 
             if (targetId && oxData[targetId] && Array.isArray(oxData[targetId])) {
                 var chunks = oxData[targetId];
-                console.log('PHIMHDCS_DEBUG decoding targetId=' + targetId + ', chunks=' + chunks.length + ', salt=' + saltString);
+                log('PHIMHDCS_DEBUG decoding targetId=' + targetId + ', chunks=' + chunks.length + ', salt=' + saltString);
                 var playerUrl = decodeChunksWithSalt(chunks, saltString);
-                console.log('PHIMHDCS_DEBUG decoded playerUrl: ' + playerUrl);
+                log('PHIMHDCS_DEBUG decoded playerUrl: ' + playerUrl);
                 
                 if (playerUrl && playerUrl.indexOf('http') === 0) {
                     var isDirect = playerUrl.indexOf('.m3u8') !== -1 || playerUrl.indexOf('.mp4') !== -1;
