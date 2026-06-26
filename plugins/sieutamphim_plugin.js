@@ -12,14 +12,14 @@ function getManifest() {
     return JSON.stringify({
         "id": "sieutamphim",
         "name": "Sưu Tầm Phim",
-        "version": "1.0.4",
+        "version": "1.0.8",
         "baseUrl": "https://www.sieutamphim.pro",
         "iconUrl": "https://www.sieutamphim.pro/posts/2024/06/cropped-logosieutamphim-192x192.png",
         "isEnabled": true,
         "isAdult": false,
         "type": "MOVIE",
         "layoutType": "VERTICAL",
-        "playerType": "embed"
+        "playerType": "embedtoexoplay"
     });
 }
 
@@ -427,3 +427,7 @@ function base64Encode(str) {
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
+
+function getUrlCategories() { return ""; }
+function getUrlCountries() { return ""; }
+function getUrlYears() { return ""; }
