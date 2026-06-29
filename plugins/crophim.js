@@ -7,7 +7,7 @@ function getManifest() {
         "id": "con.pro",          
         "name": "con.pro",
         "description": "Phim Online",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://coon.pro/",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -26,7 +26,7 @@ function getHomeSections() {
 
 function getPrimaryCategories() {
     return JSON.stringify([
-        { "name": "Hành Động", "?s=&genres=hanh-dong": "hanh-dong" },
+         { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
         { "name": "Kinh Dị", "slug": "?s=&genres=kinh-di" },
         { "slug": "?s=&genres=phim-18", "name": "Phim 18+"},
         { "slug": "?s=&genres=hai-huoc", "name": "Phim Hài"},
