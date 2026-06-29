@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.9",             
+        "version": "1.2",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
