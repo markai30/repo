@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.1.1",             
+        "version": "1.9",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -110,28 +110,40 @@ function parseMovieDetail(html) {
         var episodes = [];
         var checkedUrls = {}; 
 
-        var epRegex = /class="[^"]*item-ep[^"]*"[^>]*data-m3u8="([^"]+)"[^>]*data-embed="([^"]+)"[\s\S]*?<div class="v-title">([\s\S]*?)<\/div>/g;
-        var match;
+        // BƯỚC 1: Tìm vị trí của id="episodes-chunked"
+        var startIndex = html.indexOf('id="episodes-chunked"');
+        
+        if (startIndex !== -1) {
+            // Cắt từ id="episodes-chunked" cho đến hết chuỗi html (để đảm bảo ôm trọn hàng trăm thẻ a)
+            var chunkedHtml = html.substring(startIndex); 
 
-                while ((match = epRegex.exec(html)) !== null) {
-            var videoStreamUrl = match[1] ? match[1].trim() : match[2].trim();
-            var epName = match[3].replace(/<[^>]*>/g, '').trim(); 
+            // BƯỚC 2: Dùng Regex quét mọi thẻ <a> có class="item" nằm trong vùng này
+            // Thay vì dùng [\s\S]*? dễ bị nuốt chuỗi, ta ép Regex quét qua các cụm nội dung bên trong cho đến khi đụng thẻ </a> kế cận.
+            var itemRegex = /<a\s+href="([^"]+)"[^>]*class="[^"]*item[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
+            var match;
 
-            if (videoStreamUrl && !checkedUrls[videoStreamUrl]) {
-                checkedUrls[videoStreamUrl] = true;
-                
-                // SỬA TẠI ĐÂY: Thêm đầy đủ id và slug theo yêu cầu của Model App
-                episodes.push({
-                    "id": videoStreamUrl,
-                    "slug": videoStreamUrl,
-                    "name": epName,
-                    "url": videoStreamUrl
-                });
+            while ((match = itemRegex.exec(chunkedHtml)) !== null) {
+                var epUrl = match[1].trim();       // Lấy href của tập phim
+                var itemInnerHtml = match[2];     // Toàn bộ phần ruột bên trong thẻ <a> đó
+
+                if (epUrl && !checkedUrls[epUrl]) {
+                    checkedUrls[epUrl] = true;
+
+                    // BƯỚC 3: Quét lấy tên tập ở ep-sort flex-shrink-0 trong phần ruột vừa tách riêng
+                    var nameMatch = itemInnerHtml.match(/class="[^"]*ep-sort flex-shrink-0[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
+                    var epName = nameMatch ? nameMatch[1].replace(/<[^>]*>/g, '').trim() : "Tập";
+
+                    episodes.push({
+                        "id": epUrl,
+                        "slug": epUrl,
+                        "name": epName,
+                        "url": epUrl
+                    });
+                }
             }
         }
 
         if (episodes.length === 0) {
-            // SỬA CẢ Ở ĐÂY: Cho trường hợp fallback mặc định
             episodes.push({ 
                 "id": "full",
                 "slug": "full",
@@ -139,7 +151,6 @@ function parseMovieDetail(html) {
                 "url": "https://phimvn2y.com" 
             });
         }
-
 
         return JSON.stringify({
             "id": title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
@@ -159,9 +170,11 @@ function parseMovieDetail(html) {
         });
 
     } catch (error) {
-        return JSON.stringify({ "id": "error", "title": "Lỗi", "servers": [] });
+        return JSON.stringify({ "id": "error", "title": "Lỗi cấu trúc", "servers": [] });
     }
 }
+
+
 
 // ĐÃ SỬA: Chỉ nhận duy nhất 1 tham số html
 function parseDetailResponse(html) {
