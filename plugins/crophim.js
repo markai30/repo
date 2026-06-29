@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://coon.pro/",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -17,26 +17,26 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "?s=&genres=&regions=&years=&categories=motphim", "title": "Phim Mới", "type": "Grid" },
-        { "slug": "?s=&genres=&regions=&years=&categories=phim-le", "title": "Phim Lẻ", "type": "Grid" },
-        { "slug": "?s=&genres=&regions=&years=&categories=phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
-        { "slug": "?s=&genres=&regions=&years=&categories=phim-bo", "title": "Phim Bộ", "type": "Grid" }
+        { "slug": "?s=&categories=motphim", "title": "Phim Mới", "type": "Grid" },
+        { "slug": "?s=&categories=phim-le", "title": "Phim Lẻ", "type": "Grid" },
+        { "slug": "?s=&categories=phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
+        { "slug": "?s=&categories=phim-bo", "title": "Phim Bộ", "type": "Grid" }
     ]);
 }
 
 function getPrimaryCategories() {
     return JSON.stringify([
-         { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
+        { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
         { "name": "Kinh Dị", "slug": "?s=&genres=kinh-di" },
-        { "slug": "?s=&genres=phim-18", "name": "Phim 18+"},
-        { "slug": "?s=&genres=hai-huoc", "name": "Phim Hài"},
-        { "slug": "?s=&genres=chien-tranh", "name": "Phim Chiến Tranh"},
-        { "slug": "?s=&genres=hoat-hinh", "name": "Phim Hoạt Hình"},
-        { "slug": "?s=&genres=vien-tuong", "name": "Phim Viễn Tưởng"}
+        { "name": "Phim 18+", "slug": "?s=&genres=phim-18" },
+        { "name": "Phim Hài", "slug": "?s=&genres=hai-huoc" },
+        { "name": "Phim Chiến Tranh", "slug": "?s=&genres=chien-tranh" },
+        { "name": "Phim Hoạt Hình", "slug": "?s=&genres=hoat-hinh" },
+        { "name": "Viễn Tưởng", "slug": "?s=&genres=vien-tuong" }
     ]);
 }
 
-// ĐÃ SỬA: Đổi tên từ getFilterConfig thành getFilters theo chuẩn kkphim/ophim
+// ĐÃ SỬA: Giữ nguyên getFilters() theo chuẩn hệ thống kkphim/ophim hiện tại của bạn
 function getFilters() {
     return JSON.stringify({
         "sort": [
@@ -48,12 +48,11 @@ function getFilters() {
 // =============================================================================
 // URL GENERATION
 // =============================================================================
-// https://coon.pro/page/2/?s&genres=hai-huoc&regions&years&categories#038;genres=hai-huoc&regions&years&categories
 
 function getUrlList(slug, filtersJson) {
     var filters = JSON.parse(filtersJson || "{}");
     var page = filters.page || 1;
-    return "https://coon.pro/page/"  + page + "/" + slug;
+    return "https://coon.pro/page/" + page + "/" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
@@ -71,14 +70,12 @@ function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
-// PARSERS (Đã chuẩn hóa chỉ nhận duy nhất 1 tham số html)
+// PARSERS
 // =============================================================================
 
 function parseListResponse(html) {
     try {
         var items = [];
-        
-        // 1. REGEX LẤY DANH SÁCH VIDEO
         var regex = /<div class="module-item-pic"><a\s+href="([^"]+)"\s+title="([^"]+)"[\s\S]*?<img[^>]*data-src="([^"]+)"/g;
         var match;
         
@@ -92,24 +89,18 @@ function parseListResponse(html) {
             });
         }
         
-        // 2. LOGIC BÓC TÁCH TỔNG SỐ TRANG (PAGINATION)
-        var totalPages = 1; // Mặc định nếu không tìm thấy phân trang thì là 1
-        var currentPage = 1; // Mặc định trang hiện tại là 1
+        var totalPages = 1; 
+        var currentPage = 1; 
 
         if (html && html.indexOf('id="page"') > -1) {
-            // Lấy riêng đoạn HTML chứa phân trang để xử lý chính xác hơn
             var pageSectionBox = html.match(/<div id="page">([\s\S]*?)<\/div>/i);
             if (pageSectionBox && pageSectionBox[1]) {
                 var pageHtml = pageSectionBox[1];
-
-                // Tìm trang hiện tại (nằm trong thẻ span class="page-current")
                 var currentMatch = pageHtml.match(/class="[^"]*page-current[^"]*">(\d+)</i);
                 if (currentMatch) {
                     currentPage = parseInt(currentMatch[1], 10);
                 }
 
-                // Quét tìm tất cả các số trang xuất hiện trong các thẻ a hoặc span
-                // Regex này tìm các chữ số nằm ngay trước thẻ đóng </a> hoặc </span>
                 var pageNumbers = [];
                 var pageRegex = />(\d+)<\/a>/g;
                 var pageMatch;
@@ -118,12 +109,9 @@ function parseListResponse(html) {
                     pageNumbers.push(parseInt(pageMatch[1], 10));
                 }
 
-                // Nếu tìm thấy danh sách các số trang, số lớn nhất chính là tổng số trang
                 if (pageNumbers.length > 0) {
                     totalPages = Math.max.apply(Math, pageNumbers);
                 }
-                
-                // Trường hợp đặc biệt: Nếu tổng số trang tìm được vẫn nhỏ hơn trang hiện tại
                 if (totalPages < currentPage) {
                     totalPages = currentPage;
                 }
@@ -132,110 +120,141 @@ function parseListResponse(html) {
         
         return JSON.stringify({
             "items": items,
-            "pagination": { 
-                "currentPage": currentPage, 
-                "totalPages": totalPages 
-            }
+            "pagination": { "currentPage": currentPage, "totalPages": totalPages }
         });
     } catch (e) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
     }
 }
 
-
-
 function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-// ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
-function parseMovieDetail(html) {
-    // Nhiệm vụ của bạn ở đây: Viết Regex cào tên, mô tả, ảnh cover, và quan trọng nhất là DANH SÁCH TẬP PHIM.
-   var $title =  html.split(/\<h1 class\=\"page-title\"\>([\s\S]*?)<\/h1>/)
-    if($title){
-    	$title = $title[1].replace(/<[^>]*>/g, '').trim() || "Chưa rõ tên phim";
-	}
-	var $year =  html.split(/\<div class\=\"tag-link\"\>([\s\S]*?)<\/div>/)
-    if($year){
-    	$year= $year[1].replace(/<[^>]*>/g, '').trim() || "????";
-	}
-	var $des =  html.split(/\<div class\=\"video-info-item video-info-content\"\>([\s\S]*?)<\/div>/)
-    if($des){
-    	$des= $des[1].replace(/<[^>]*>/g, '').trim() || "????";
-	}
-	var $img =  html.split(/\<div class\=\"module-item-pic\"\>[\s\S]*?<img[\s\S]*?src\=\"([\s\S]*?)\"/)
-    if($img){
-    	$img= $img[1].replace(/<[^>]*>/g, '').trim() || "????";
-	}
-	var $url = html.split(/\<div class\=\"video-info-footer display\"\>[\s\S]*?<a[\s\S]*?href\=\"([\s\S]*?)\"/)
-    if($url){
-    	$url= $url[1].replace(/<[^>]*>/g, '').trim();
-    	var episodes = [];
-    	if($url.indexOf("full") > -1){
-    		episodes.push({
-                                "id": $url,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
-                                "slug": 1,
-                                "name": $title,
-                                "url": $url
-           });
-		}
-		else{
-			var $page = html.split(/\<span class\=\"video-info-itemtitle\"\>Thời lượng：[\s\S]*?<div class\=\"video-info-item\"\>([\s\S]*?)\<\/div>/);
-			if($page){
-				$page= $page[1].match(/\|\s(\d+)\s\|/)[1];
-				var $link = $url.split(/tap-(\d+)-/);
-				var $linkgoc = $link[0];
-				var $linkser = $link[2];
-				for(var $j = 1; $j < Number($page) + 1;$j++){
-					var $full = $linkgoc + "tap-" + $j + "-" + $linkser;
-					episodes.push({
-                                "id": $full,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
-                                "slug": $j,
-                                "name": "Tập " + $j,
-                                "url": $full
-          			 });	
-				}
-			}
-		}
-	}
-	
-	
-    return JSON.stringify({
-        id: $url,
-        title: $title,
-        posterUrl: $img,
-        backdropUrl: $img,
-        description: $des,
-        servers: [
-            {
-                name: "Server Vietsub", // Tên server phim
-                episodes: episodes
-            }
-        ],
-        quality: "HD",
-        year: $year,
-        rating: 8.0,
-        status: "Full",
-        duration: "???",
-        casts: "???",
-        director: "???"
-    });
-}
 /**
- * ĐÃ SỬA: Phân giải mã HTML của trang xem phim riêng biệt để bóc link .m3u8 cuối cùng ẩn bên trong
+ * ĐÃ SỬA TOÀN BỘ: Thêm chốt chặn điều kiện (if-validate) chống crash ứng dụng mobile
  */
+function parseMovieDetail(html) {
+    try {
+        var title = "Chưa rõ tên phim";
+        var year = "????";
+        var des = "Chưa có mô tả.";
+        var img = "";
+        var movieUrl = "";
+        var episodes = [];
+
+        // 1. Bóc tách Tiêu đề phim
+        var titleMatch = html.split(/\<h1 class\=\"page-title\"\>([\s\S]*?)<\/h1>/);
+        if (titleMatch && titleMatch[1]) {
+            title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
+        }
+
+        // 2. Bóc tách Năm phát hành
+        var yearMatch = html.split(/\<div class\=\"tag-link\"\>([\s\S]*?)<\/div>/);
+        if (yearMatch && yearMatch[1]) {
+            year = yearMatch[1].replace(/<[^>]*>/g, '').trim();
+        }
+
+        // 3. Bóc tách Nội dung phim
+        var desMatch = html.split(/\<div class\=\"video-info-item video-info-content\"\>([\s\S]*?)<\/div>/);
+        if (desMatch && desMatch[1]) {
+            des = desMatch[1].replace(/<[^>]*>/g, '').trim();
+        }
+
+        // 4. Bóc tách Ảnh đại diện
+        var imgMatch = html.split(/\<div class\=\"module-item-pic\"\>[\s\S]*?<img[\s\S]*?src\=\"([\s\S]*?)\"/);
+        if (imgMatch && imgMatch[1]) {
+            img = imgMatch[1].replace(/<[^>]*>/g, '').trim();
+        }
+
+        // 5. Bóc tách Link tập phim cơ sở & xử lý Danh sách tập
+        var urlMatch = html.split(/\<div class\=\"video-info-footer display\"\>[\s\S]*?<a[\s\S]*?href\=\"([\s\S]*?)\"/);
+        if (urlMatch && urlMatch[1]) {
+            movieUrl = urlMatch[1].replace(/<[^>]*>/g, '').trim();
+
+            // Trường hợp phim lẻ (có chữ "full" trong đường dẫn)
+            if (movieUrl.indexOf("full") > -1) {
+                episodes.push({
+                    "id": movieUrl,
+                    "slug": 1,
+                    "name": "Full Tập",
+                    "url": movieUrl
+                });
+            } else {
+                // Trường hợp phim bộ: Lấy tổng số tập hiện tại
+                var pageMatch = html.split(/\<span class\=\"video-info-itemtitle\"\>Thời lượng：[\s\S]*?<div class\=\"video-info-item\"\>([\s\S]*?)\<\/div>/);
+                var totalEpisodes = 0;
+
+                if (pageMatch && pageMatch[1]) {
+                    var numMatch = pageMatch[1].match(/\|\s(\d+)\s\|/);
+                    if (numMatch && numMatch[1]) {
+                        totalEpisodes = parseInt(numMatch[1], 10);
+                    }
+                }
+
+                // Tiến hành dựng vòng lặp tạo link tập phim nếu tìm được cấu trúc link chuẩn
+                var linkParts = movieUrl.split(/tap-(\d+)-/);
+                if (linkParts && linkParts.length >= 3 && totalEpisodes > 0) {
+                    var linkGoc = linkParts[0];
+                    var linkSer = linkParts[2];
+
+                    for (var j = 1; j <= totalEpisodes; j++) {
+                        var fullLink = linkGoc + "tap-" + j + "-" + linkSer;
+                        episodes.push({
+                            "id": fullLink,
+                            "slug": j,
+                            "name": "Tập " + j,
+                            "url": fullLink
+                        });
+                    }
+                } else if (movieUrl) {
+                    // Dự phòng nếu không phân tích được cấu trúc "tap-X-" thì thêm chính link gốc làm tập 1
+                    episodes.push({
+                        "id": movieUrl,
+                        "slug": 1,
+                        "name": "Tập 1",
+                        "url": movieUrl
+                    });
+                }
+            }
+        }
+
+        return JSON.stringify({
+            "id": movieUrl || "unknown",
+            "title": title,
+            "posterUrl": img,
+            "backdropUrl": img,
+            "description": des,
+            "servers": [
+                {
+                    "name": "Server Vietsub",
+                    "episodes": episodes
+                }
+            ],
+            "quality": "HD",
+            "year": year,
+            "rating": 8.0,
+            "status": episodes.length > 1 ? "Tập " + episodes.length : "Full",
+            "duration": "???",
+            "casts": "???",
+            "director": "???"
+        });
+
+    } catch (e) {
+        // Trả về Object rỗng an toàn nếu có lỗi bất ngờ xảy ra bên trong hàm
+        return JSON.stringify({ "id": "", "title": "Lỗi tải dữ liệu", "servers": [] });
+    }
+}
+
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
 
         if (html && typeof html === 'string') {
-            // Bước 1: Quét tìm tất cả các chuỗi có định dạng link kết thúc bằng .m3u8 trong HTML/Script của trang xem phim mới tải
             var m3u8Match = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
-            
             if (m3u8Match) {
                 videoUrl = m3u8Match[1].trim();
             } else {
-                // Bước dự phòng: Nếu không tìm thấy, thử tìm link embed player (như player.phimapi.com...)
                 var embedMatch = html.match(/(https?:\/\/player[^"']+\/player\/\?url=[^"']+)/i);
                 if (embedMatch) {
                     videoUrl = decodeURIComponent(embedMatch[1].split('url=')[1]);
@@ -248,7 +267,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
-                "Referer": "https://phimvn2y.com/", 
+                "Referer": "https://coon.pro/", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             },
             "subtitles": []
