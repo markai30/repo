@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.6",             
+        "version": "1.7",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -113,35 +113,55 @@ function parseMovieDetail(html) {
             var posterUrl = _movieObj.poster || _movieObj.thumb || "";
             var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
         var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
-            
-            var episodes = [];
-            
-            // ĐÃ SỬA: Đi đúng cây thư mục dữ liệu từ ảnh DevTools của bạn
-            // Kiểm tra xem có mảng _movieObj.episodes và phần tử server đầu tiên không
-            if (_movieObj.episodes && _movieObj.episodes[0] && Array.isArray(_movieObj.episodes[0].server_data)) {
-                var rawEpisodes = _movieObj.episodes[0].server_data; // Trỏ thẳng vào mảng Array(159) như trong ảnh
+            // Mảng chứa danh sách các server để trả về cho App
+            var appServers = [];
 
-                for (var i = 0; i < rawEpisodes.length; i++) {
-                    var ep = rawEpisodes[i];
+            // Duyệt qua toàn bộ danh sách server hiện có trong object gốc (Array(3) như trong ảnh)
+            if (Array.isArray(_movieObj.episodes)) {
+                for (var s = 0; s < _movieObj.episodes.length; s++) {
+                    var rawServer = _movieObj.episodes[s];
                     
-                    var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
-                    var epSlug = ep.slug || String(i + 1);
-                    
-                    // Ưu tiên lấy link_m3u8, nếu không có thì fallback sang link_embed
-                    var videoUrl = ep.link_m3u8 || ep.link_embed || ""; 
+                    // Lấy tên server gốc từ web, nếu không có thì đặt tên dạng SV 1, SV 2...
+                    var serverName = rawServer.server_name || rawServer.name || ("Server " + (s + 1));
+                    var episodes = [];
 
-                    // Đẩy đủ 4 trường cốt lõi phục vụ Android Model Serialization của App
-                    episodes.push({
-                        "id": epSlug,
-                        "slug": epSlug,
-                        "name": epName,
-                        "url": videoUrl
-                    });
+                    // Kiểm tra và duyệt danh sách tập phim (server_data) của server hiện tại
+                    if (Array.isArray(rawServer.server_data)) {
+                        for (var i = 0; i < rawServer.server_data.length; i++) {
+                            var ep = rawServer.server_data[i];
+                            
+                            var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
+                            var epSlug = ep.slug || String(i + 1);
+                            
+                            // Ưu tiên lấy link stream m3u8, nếu không có dùng link embed
+                            var videoUrl = ep.link_m3u8 || ep.link_embed || ""; 
+
+                            // Đẩy đủ 4 trường bắt buộc của model Episode trên App
+                            episodes.push({
+                                "id": epSlug,
+                                "slug": epSlug,
+                                "name": epName,
+                                "url": videoUrl
+                            });
+                        }
+                    }
+
+                    // Chỉ thêm server này vào danh sách nếu nó thực sự có tập phim
+                    if (episodes.length > 0) {
+                        appServers.push({
+                            "name": serverName.trim(),
+                            "episodes": episodes
+                        });
+                    }
                 }
             }
 
-            if (episodes.length === 0) {
-                episodes.push({ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" });
+            // Trường hợp không tìm thấy bất kỳ server hay tập phim nào
+            if (appServers.length === 0) {
+                appServers.push({
+                    "name": "Nguồn Dự Phòng",
+                    "episodes": [{ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" }]
+                });
             }
 
             return JSON.stringify({
@@ -153,12 +173,7 @@ function parseMovieDetail(html) {
                 "year": _movieObj.year || "2026",
                 "rating": 10,
                 "quality": "HD",
-                "servers": [
-                    {
-                        "name": "Nguồn Phim VN",
-                        "episodes": episodes
-                    }
-                ]
+                "servers": appServers // Đưa mảng danh sách các server đã xử lý vào đây
             });
         }
 
@@ -168,6 +183,7 @@ function parseMovieDetail(html) {
         return JSON.stringify({ "id": "error", "title": "Lỗi Thực Thi Hệ Thống: " + error.message, "servers": [] });
     }
 }
+
 
 
 
