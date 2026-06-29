@@ -1,13 +1,14 @@
 // =============================================================================
-// VAAPP Plugin - Crophim New Core (Tên file bắt buộc: crophim_plugin.js)
+// VAAPP Plugin - Crophim Pro (Chuẩn hóa 100% cấu trúc Core Repo gốc)
+// Tên file bắt buộc khi lưu: crophim_plugin.js
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "crophim_core_fixed",          
+        "id": "crophim_v3_final",          
         "name": "Crophim Pro",
-        "description": "Nguồn Phim Online",
-        "version": "1.0.5",             
+        "description": "Nguồn Xem Phim Sạch",
+        "version": "2.0",             
         "baseUrl": "https://coon.pro",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -17,28 +18,43 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "?s=&categories=motphim", "title": "Phim Mới", "type": "Grid" },
-        { "slug": "?s=&categories=phim-le", "title": "Phim Lẻ", "type": "Grid" },
-        { "slug": "?s=&categories=phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
-        { "slug": "?s=&categories=phim-bo", "title": "Phim Bộ", "type": "Grid" }
+        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" },
+        { "slug": "phim-le", "title": "Phim Lẻ", "type": "Grid" },
+        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
+        { "slug": "phim-bo", "title": "Phim Bộ", "type": "Grid" }
     ]);
 }
 
 function getPrimaryCategories() {
     return JSON.stringify([
-        { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
-        { "name": "Kinh Dị", "slug": "?s=&genres=kinh-di" },
-        { "name": "Phim 18+", "slug": "?s=&genres=phim-18" },
-        { "name": "Phim Hài", "slug": "?s=&genres=hai-huoc" },
-        { "name": "Phim Chiến Tranh", "slug": "?s=&genres=chien-tranh" },
-        { "name": "Phim Hoạt Hình", "slug": "?s=&genres=hoat-hinh" },
-        { "name": "Viễn Tưởng", "slug": "?s=&genres=vien-tuong" }
+        { "name": "Hành Động", "slug": "hanh-dong" },
+        { "name": "Kinh Dị", "slug": "kinh-di" },
+        { "name": "Phim 18+", "slug": "phim-18" },
+        { "name": "Phim Hài", "slug": "hai-huoc" },
+        { "name": "Phim Chiến Tranh", "slug": "chien-tranh" },
+        { "name": "Phim Hoạt Hình", "slug": "hoat-hinh" },
+        { "name": "Viễn Tưởng", "slug": "vien-tuong" }
     ]);
 }
 
-function getPrimaryCountries() { return JSON.stringify([]); }
-function getPrimaryYears() { return JSON.stringify([]); }
-function getFilters() { return JSON.stringify([]); }
+// BỔ SUNG: Hàm cấu hình Quốc gia bắt buộc của Core Repo
+function getPrimaryCountries() { 
+    return JSON.stringify([]); 
+}
+
+// BỔ SUNG: Hàm cấu hình Năm phát hành bắt buộc của Core Repo
+function getPrimaryYears() { 
+    return JSON.stringify([]); 
+}
+
+// ĐÃ SỬA: Đổi từ getFilters thành getFilterConfig theo đúng chuẩn mẫu ophim/kkphim trong repo
+function getFilterConfig() {
+    return JSON.stringify({
+        "sort": [
+            { "name": "Mới nhất", "value": "newest" }
+        ]
+    });
+}
 
 // =============================================================================
 // URL GENERATION
@@ -51,8 +67,14 @@ function getUrlList(slug, filtersJson) {
             filters = JSON.parse(filtersJson);
         }
     } catch(e) {}
+    
     var page = filters.page || 1;
-    return "https://coon.pro/page/" + page + "/" + slug;
+    
+    if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
+        return "https://coon.pro/page/" + page + "/?s=&genres=" + slug;
+    }
+    
+    return "https://coon.pro/page/" + page + "/?s=&categories=" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
