@@ -4,10 +4,10 @@
 
 function getManifest() {
     return JSON.stringify({
-        "id": "con.pro",          
-        "name": "con.pro",
+        "id": "crophim",          
+        "name": "crophim",
         "description": "Phim Online",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://coon.pro/",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
