@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://coon.pro/",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -18,10 +18,8 @@ function getManifest() {
 // ĐÃ SỬA: Chuyển sang Object thuần rồi mới stringify để tránh lỗi ký tự đặc biệt (&)
 function getHomeSections() {
     var sections = [
-        { "slug": "?s=&categories=motphim", "title": "Phim Mới", "type": "Grid" },
-        { "slug": "?s=&categories=phim-le", "title": "Phim Lẻ", "type": "Grid" },
-        { "slug": "?s=&categories=phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
-        { "slug": "?s=&categories=phim-bo", "title": "Phim Bộ", "type": "Grid" }
+        { "slug": "chuyen-muc/motphim", "title": "Phim Mới", "type": "Grid" },
+        { "slug": "chuyen-muc/phim-le", "title": "Phim Lẻ", "type": "Grid" }
     ];
     return JSON.stringify(sections);
 }
