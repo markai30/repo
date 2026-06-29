@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -98,81 +98,78 @@ function parseSearchResponse(html) {
 // ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
 function parseMovieDetail(html) {
     try {
-        var titleMatch = html.match(/<h2[^>]*class="[^"]*heading-md media-name[^"]*"[^>]*>([\s\S]*?)<\/h2>/i);
-        var title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : "Chưa rõ tên phim";
-
-        var posterMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
-        var posterUrl = posterMatch ? posterMatch[1] : "";
-
-        var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
-        var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
-
-        var episodes = [];
-        var checkedUrls = {}; 
-
-        // BƯỚC 1: Tìm vị trí của id="episodes-chunked"
-        var startIndex = html.indexOf('id="episodes-chunked"');
+        var parts = html.split(/window\s*\.?\s*_\s*movie\s*=\s*(.*)/i);
         
-        if (startIndex !== -1) {
-            // Cắt từ id="episodes-chunked" cho đến hết chuỗi html (để đảm bảo ôm trọn hàng trăm thẻ a)
-            var chunkedHtml = html.substring(startIndex); 
+        if (!parts || parts.length < 2) {
+            return JSON.stringify({ "id": "error-split", "title": "Không tìm thấy vùng dữ liệu window._movie", "servers": [] });
+        }
 
-            // BƯỚC 2: Dùng Regex quét mọi thẻ <a> có class="item" nằm trong vùng này
-            // Thay vì dùng [\s\S]*? dễ bị nuốt chuỗi, ta ép Regex quét qua các cụm nội dung bên trong cho đến khi đụng thẻ </a> kế cận.
-            var itemRegex = /<a\s+href="([^"]+)"[^>]*class="[^"]*item[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
-            var match;
+        var movieScriptMatch = parts[1];
+        var _movieObj;
+        eval("_movieObj = " + movieScriptMatch);
 
-            while ((match = itemRegex.exec(chunkedHtml)) !== null) {
-                var epUrl = match[1].trim();       // Lấy href của tập phim
-                var itemInnerHtml = match[2];     // Toàn bộ phần ruột bên trong thẻ <a> đó
+        if (_movieObj) {
+            var title = _movieObj.title || "Chưa rõ tên phim";
+            var posterUrl = _movieObj.poster || _movieObj.thumb || "";
+            var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
+        var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
+            
+            var episodes = [];
+            
+            // ĐÃ SỬA: Đi đúng cây thư mục dữ liệu từ ảnh DevTools của bạn
+            // Kiểm tra xem có mảng _movieObj.episodes và phần tử server đầu tiên không
+            if (_movieObj.episodes && _movieObj.episodes[0] && Array.isArray(_movieObj.episodes[0].server_data)) {
+                var rawEpisodes = _movieObj.episodes[0].server_data; // Trỏ thẳng vào mảng Array(159) như trong ảnh
 
-                if (epUrl && !checkedUrls[epUrl]) {
-                    checkedUrls[epUrl] = true;
+                for (var i = 0; i < rawEpisodes.length; i++) {
+                    var ep = rawEpisodes[i];
+                    
+                    var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
+                    var epSlug = ep.slug || String(i + 1);
+                    
+                    // Ưu tiên lấy link_m3u8, nếu không có thì fallback sang link_embed
+                    var videoUrl = ep.link_m3u8 || ep.link_embed || ""; 
 
-                    // BƯỚC 3: Quét lấy tên tập ở ep-sort flex-shrink-0 trong phần ruột vừa tách riêng
-                    var nameMatch = itemInnerHtml.match(/class="[^"]*ep-sort flex-shrink-0[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
-                    var epName = nameMatch ? nameMatch[1].replace(/<[^>]*>/g, '').trim() : "Tập";
-
+                    // Đẩy đủ 4 trường cốt lõi phục vụ Android Model Serialization của App
                     episodes.push({
-                        "id": epUrl,
-                        "slug": epUrl,
+                        "id": epSlug,
+                        "slug": epSlug,
                         "name": epName,
-                        "url": epUrl
+                        "url": videoUrl
                     });
                 }
             }
-        }
 
-        if (episodes.length === 0) {
-            episodes.push({ 
-                "id": "full",
-                "slug": "full",
-                "name": "Full", 
-                "url": "https://phimvn2y.com" 
+            if (episodes.length === 0) {
+                episodes.push({ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" });
+            }
+
+            return JSON.stringify({
+                "id": _movieObj.slug || title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+                "title": title,
+                "posterUrl": posterUrl,
+                "backdropUrl": posterUrl,
+                "description": description,
+                "year": _movieObj.year || "2026",
+                "rating": 10,
+                "quality": "HD",
+                "servers": [
+                    {
+                        "name": "Nguồn Phim VN",
+                        "episodes": episodes
+                    }
+                ]
             });
         }
 
-        return JSON.stringify({
-            "id": title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            "title": title,
-            "posterUrl": posterUrl,
-            "backdropUrl": posterUrl,
-            "description": description,
-            "year": "2026",
-            "rating": 10,
-            "quality": "HD",
-            "servers": [
-                {
-                    "name": "Rophim Fake",
-                    "episodes": episodes
-                }
-            ]
-        });
+        return JSON.stringify({ "id": "error-object", "title": "Lỗi khởi tạo Object dữ liệu phim", "servers": [] });
 
     } catch (error) {
-        return JSON.stringify({ "id": "error", "title": "Lỗi cấu trúc", "servers": [] });
+        return JSON.stringify({ "id": "error", "title": "Lỗi Thực Thi Hệ Thống: " + error.message, "servers": [] });
     }
 }
+
+
 
 
 
