@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.7",             
+        "version": "1.0",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -192,21 +192,15 @@ function parseMovieDetail(html) {
 // ĐÃ SỬA: Chỉ nhận duy nhất 1 tham số html
 function parseDetailResponse(html) {
     try {
-        var activeEpRegex = /class="[^"]*item-ep[^"]*active[^"]*"[^>]*data-m3u8="([^"]+)"[^>]*data-embed="([^"]+)"/i;
-        var match = html.match(activeEpRegex);
-        
-        var videoUrl = match ? (match[1] ? match[1].trim() : match[2].trim()) : "";
+        // Lúc này 'html' thực chất chính là chuỗi URL video được truyền từ tập phim sang
+        var videoUrl = (html && typeof html === 'string') ? html.trim() : "";
 
-        if (!videoUrl) {
-            var backupMatch = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
-            videoUrl = backupMatch ? backupMatch[1] : "";
-        }
-
+        // Trả thẳng link video cho player xử lý kèm theo Headers chống chặn (nếu cần)
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
                 "Referer": "https://phimvn2y.com/", 
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             }
         });
 
@@ -214,6 +208,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
 }
+
 
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
