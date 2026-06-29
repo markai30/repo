@@ -113,14 +113,17 @@ function parseMovieDetail(html) {
         var epRegex = /class="[^"]*item-ep[^"]*"[^>]*data-m3u8="([^"]+)"[^>]*data-embed="([^"]+)"[\s\S]*?<div class="v-title">([\s\S]*?)<\/div>/g;
         var match;
 
-        while ((match = epRegex.exec(html)) !== null) {
+                while ((match = epRegex.exec(html)) !== null) {
             var videoStreamUrl = match[1] ? match[1].trim() : match[2].trim();
             var epName = match[3].replace(/<[^>]*>/g, '').trim(); 
 
             if (videoStreamUrl && !checkedUrls[videoStreamUrl]) {
                 checkedUrls[videoStreamUrl] = true;
-                // ĐÃ SỬA: Đưa về đúng cấu trúc chuỗi {name, url} của plugin mẫu kkphim
+                
+                // SỬA TẠI ĐÂY: Thêm đầy đủ id và slug theo yêu cầu của Model App
                 episodes.push({
+                    "id": videoStreamUrl,
+                    "slug": videoStreamUrl,
                     "name": epName,
                     "url": videoStreamUrl
                 });
@@ -128,8 +131,15 @@ function parseMovieDetail(html) {
         }
 
         if (episodes.length === 0) {
-            episodes.push({ "name": "Full", "url": "https://phimvn2y.com" });
+            // SỬA CẢ Ở ĐÂY: Cho trường hợp fallback mặc định
+            episodes.push({ 
+                "id": "full",
+                "slug": "full",
+                "name": "Full", 
+                "url": "https://phimvn2y.com" 
+            });
         }
+
 
         return JSON.stringify({
             "id": title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
