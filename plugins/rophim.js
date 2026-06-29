@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.4",             
+        "version": "1.1",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -111,21 +111,19 @@ function parseMovieDetail(html) {
         if (_movieObj) {
             var title = _movieObj.title || "Chưa rõ tên phim";
             var posterUrl = _movieObj.poster || _movieObj.thumb || "";
+            var movieSlug = _movieObj.slug || "";
+            
             var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
-        var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
-            // Mảng chứa danh sách các server để trả về cho App
+            var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
+            
             var appServers = [];
 
-            // Duyệt qua toàn bộ danh sách server hiện có trong object gốc (Array(3) như trong ảnh)
             if (Array.isArray(_movieObj.episodes)) {
                 for (var s = 0; s < _movieObj.episodes.length; s++) {
                     var rawServer = _movieObj.episodes[s];
-                    
-                    // Lấy tên server gốc từ web, nếu không có thì đặt tên dạng SV 1, SV 2...
                     var serverName = rawServer.server_name || rawServer.name || ("Server " + (s + 1));
                     var episodes = [];
 
-                    // Kiểm tra và duyệt danh sách tập phim (server_data) của server hiện tại
                     if (Array.isArray(rawServer.server_data)) {
                         for (var i = 0; i < rawServer.server_data.length; i++) {
                             var ep = rawServer.server_data[i];
@@ -133,20 +131,19 @@ function parseMovieDetail(html) {
                             var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
                             var epSlug = ep.slug || String(i + 1);
                             
-                            // Ưu tiên lấy link stream m3u8, nếu không có dùng link embed
-                            var videoUrl = ep.link_m3u8 || ep.link_embed || ""; 
+                            // LOGIC MỚI: Sinh ra URL trang xem phim hoàn chỉnh để App thực hiện Request GET tiếp theo
+                            // Kết quả: https://phimvn2y.com/dau-la-dai-luc-2-tuyet-the-duong-mon-tap-01.html
+                            var chapterPageUrl = "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
 
-                            // Đẩy đủ 4 trường bắt buộc của model Episode trên App
                             episodes.push({
-                                "id": epSlug,
+                                "id": chapterPageUrl,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
                                 "slug": epSlug,
                                 "name": epName,
-                                "url": videoUrl
+                                "url": chapterPageUrl
                             });
                         }
                     }
 
-                    // Chỉ thêm server này vào danh sách nếu nó thực sự có tập phim
                     if (episodes.length > 0) {
                         appServers.push({
                             "name": serverName.trim(),
@@ -156,7 +153,6 @@ function parseMovieDetail(html) {
                 }
             }
 
-            // Trường hợp không tìm thấy bất kỳ server hay tập phim nào
             if (appServers.length === 0) {
                 appServers.push({
                     "name": "Nguồn Dự Phòng",
@@ -165,7 +161,7 @@ function parseMovieDetail(html) {
             }
 
             return JSON.stringify({
-                "id": _movieObj.slug || title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+                "id": movieSlug || title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
                 "title": title,
                 "posterUrl": posterUrl,
                 "backdropUrl": posterUrl,
@@ -173,7 +169,7 @@ function parseMovieDetail(html) {
                 "year": _movieObj.year || "2026",
                 "rating": 10,
                 "quality": "HD",
-                "servers": appServers // Đưa mảng danh sách các server đã xử lý vào đây
+                "servers": appServers 
             });
         }
 
@@ -184,25 +180,25 @@ function parseMovieDetail(html) {
     }
 }
 
-
-
-
-
-
-// ĐÃ SỬA: Chỉ nhận duy nhất 1 tham số html
+/**
+ * ĐÃ SỬA: Phân giải mã HTML của trang xem phim riêng biệt để bóc link .m3u8 cuối cùng ẩn bên trong
+ */
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
 
         if (html && typeof html === 'string') {
-            // Bước xử lý thông minh: Nếu html truyền vào thực chất là nội dung file m3u8 hoặc trang embed con
+            // Bước 1: Quét tìm tất cả các chuỗi có định dạng link kết thúc bằng .m3u8 trong HTML/Script của trang xem phim mới tải
             var m3u8Match = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
             
             if (m3u8Match) {
                 videoUrl = m3u8Match[1].trim();
             } else {
-                // Nếu html chính là chuỗi URL phát video trực tiếp được gửi từ id tập sang
-                if (html.startsWith("http://") || html.startsWith("https://")) {
+                // Bước dự phòng: Nếu không tìm thấy, thử tìm link embed player (như player.phimapi.com...)
+                var embedMatch = html.match(/(https?:\/\/player[^"']+\/player\/\?url=[^"']+)/i);
+                if (embedMatch) {
+                    videoUrl = decodeURIComponent(embedMatch[1].split('url=')[1]);
+                } else if (html.startsWith("http://") || html.startsWith("https://")) {
                     videoUrl = html.trim();
                 }
             }
@@ -221,7 +217,6 @@ function parseDetailResponse(html) {
         return JSON.stringify({ "url": "", "headers": {} });
     }
 }
-
 
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
