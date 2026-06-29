@@ -1,13 +1,13 @@
 // =============================================================================
-// VAAPP Plugin - Rophim Fake (Bản vá chuẩn tương thích 100% hệ thống)
+// VAAPP Plugin - Rophim Fake (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "rophim1",          
-        "name": "RophimFake1",
+        "id": "rophim",          
+        "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.4",             
+        "version": "1.9",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -16,24 +16,21 @@ function getManifest() {
 }
 
 function getHomeSections() {
-    // ĐÃ SỬA: Bỏ trường "path" lạ, giữ đúng cấu trúc giống kkphim và clbpx
     return JSON.stringify([
         { "slug": "phim-le", "title": "Phim Lẻ Mới", "type": "Horizontal" },
-        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Horizontal" },
-        { "slug": "phim-chieu-rap", "title": "Phim Chiếu Rạp", "type": "Horizontal" },
-        { "slug": "phim-long-tieng", "title": "Phim Lồng Tiếng", "type": "Horizontal" }
+        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Horizontal" }
     ]);
 }
 
 function getPrimaryCategories() {
     return JSON.stringify([
         { "name": "Hành Động", "slug": "hanh-dong" },
-        { "name": "Kinh Dị", "slug": "kinh-di" },
-        { "name": "Viễn Tưởng", "slug": "vien-tuong" }
+        { "name": "Kinh Dị", "slug": "kinh-di" }
     ]);
 }
 
-function getFilterConfig() {
+// ĐÃ SỬA: Đổi tên từ getFilterConfig thành getFilters theo chuẩn kkphim/ophim
+function getFilters() {
     return JSON.stringify({
         "sort": [
             { "name": "Mới nhất", "value": "newest" }
@@ -58,7 +55,6 @@ function getUrlSearch(keyword, filtersJson) {
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    if (slug.indexOf('/') === 0) return "https://phimvn2y.com" + slug;
     return "https://phimvn2y.com/" + slug;
 }
 
@@ -67,7 +63,7 @@ function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
-// PARSERS
+// PARSERS (Đã chuẩn hóa chỉ nhận duy nhất 1 tham số html)
 // =============================================================================
 
 function parseListResponse(html) {
@@ -99,8 +95,8 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-// ĐÃ SỬA: Chuẩn hóa 2 tham số đầu vào (html, url) giống sieutamphim_plugin
-function parseMovieDetail(html, url) {
+// ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
+function parseMovieDetail(html) {
     try {
         var titleMatch = html.match(/<h2[^>]*class="[^"]*heading-md media-name[^"]*"[^>]*>([\s\S]*?)<\/h2>/i);
         var title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : "Chưa rõ tên phim";
@@ -123,21 +119,18 @@ function parseMovieDetail(html, url) {
 
             if (videoStreamUrl && !checkedUrls[videoStreamUrl]) {
                 checkedUrls[videoStreamUrl] = true;
-                // ĐÃ SỬA: Ép đủ cấu trúc id, name, slug kiểu chuỗi dữ liệu sạch
+                // ĐÃ SỬA: Đưa về đúng cấu trúc chuỗi {name, url} của plugin mẫu kkphim
                 episodes.push({
-                    "id": videoStreamUrl, 
                     "name": epName,
-                    "slug": videoStreamUrl
+                    "url": videoStreamUrl
                 });
             }
         }
 
         if (episodes.length === 0) {
-            var currentUrl = url || "full";
-            episodes.push({ "id": currentUrl, "name": "Full", "slug": "full" });
+            episodes.push({ "name": "Full", "url": "https://phimvn2y.com" });
         }
 
-        // ĐÃ SỬA: Đưa year về dạng chuỗi định dạng "2026" để khớp với bộ lọc hệ thống
         return JSON.stringify({
             "id": title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
             "title": title,
@@ -160,8 +153,8 @@ function parseMovieDetail(html, url) {
     }
 }
 
-// ĐÃ SỬA: Chuẩn hóa bắt buộc nhận 2 tham số đầu vào (html, url)
-function parseDetailResponse(html, url) {
+// ĐÃ SỬA: Chỉ nhận duy nhất 1 tham số html
+function parseDetailResponse(html) {
     try {
         var activeEpRegex = /class="[^"]*item-ep[^"]*active[^"]*"[^>]*data-m3u8="([^"]+)"[^>]*data-embed="([^"]+)"/i;
         var match = html.match(activeEpRegex);
@@ -170,7 +163,7 @@ function parseDetailResponse(html, url) {
 
         if (!videoUrl) {
             var backupMatch = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
-            videoUrl = backupMatch ? backupMatch[1] : (url || "");
+            videoUrl = backupMatch ? backupMatch[1] : "";
         }
 
         return JSON.stringify({
@@ -182,7 +175,7 @@ function parseDetailResponse(html, url) {
         });
 
     } catch (e) {
-        return JSON.stringify({ "url": url || "", "headers": {} });
+        return JSON.stringify({ "url": "", "headers": {} });
     }
 }
 
