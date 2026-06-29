@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - crophim (Bản vá lỗi Overload Memory & Đồng bộ Cấu trúc Rophim gốc)
+// VAAPP Plugin - crophim (Bản vá lỗi Encoding Ký tự đặc biệt & Khóa Regex)
 // =============================================================================
 
 function getManifest() {
@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://sportshots.pro", 
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -57,20 +57,15 @@ function getUrlList(slug, filtersJson) {
     } catch(e) {}
     
     var page = filters.page || 1;
-    
-    // Bước 1: Xác định xem slug này thuộc nhóm Danh mục (categories) hay Thể loại (genres)
-    var pathType = "chuyen-muc"; // Mặc định là danh mục (phim-le, phim-bo, motphim...)
+    var pathType = "chuyen-muc"; 
     
     if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
-        pathType = "the-loai"; // Nếu slug truyền vào là thể loại, đổi thành /the-loai/
+        pathType = "the-loai"; 
     }
     
-    // Bước 2: Build URL dựa theo số trang (page)
     if (page === 1) {
-        // Trang đầu tiên: https://sportshots.pro/chuyen-muc/phim-le/
         return "https://sportshots.pro/" + pathType + "/" + slug + "/";
     } else {
-        // Các trang sau: https://sportshots.pro/chuyen-muc/phim-le/page/3/
         return "https://sportshots.pro/" + pathType + "/" + slug + "/page/" + page + "/";
     }
 }
@@ -160,7 +155,6 @@ function parseMovieDetail(html) {
         var movieUrl = "";
         var episodes = [];
 
-        // ĐÃ SỬA: Chuyển hoàn toàn từ .split() sang .match() để tối ưu bộ nhớ Engine Mobile
         var titleMatch = html.match(/<h1 class="page-title">([\s\S]*?)<\/h1>/i);
         if (titleMatch && titleMatch[1]) {
             title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
@@ -193,11 +187,13 @@ function parseMovieDetail(html) {
                     "url": movieUrl
                 });
             } else {
-                var pageMatch = html.match(/<span class="video-info-itemtitle">Thời lượng：[\s\S]*?<div class="video-info-item">([\s\S]*?)<\/div>/i);
+                // ĐÃ SỬA: Thay dấu hai chấm tiếng Trung (：) bằng [\s\S]? để tránh lỗi biên dịch chữ lạ
+                var pageMatch = html.match(/<span class="video-info-itemtitle">Thời lượng[\s\S]?[\s\S]*?<div class="video-info-item">([\s\S]*?)<\/div>/i);
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
-                    var numMatch = pageMatch[1].match(/\|\s(\d+)\s\|/);
+                    // Tránh lỗi escape dấu gạch đứng nếu engine nghiêm ngặt
+                    var numMatch = pageMatch[1].match(/\|\s(\d+)\s\|/) || pageMatch[1].match(/(\d+)/);
                     if (numMatch && numMatch[1]) {
                         totalEpisodes = parseInt(numMatch[1], 10);
                     }
@@ -228,7 +224,6 @@ function parseMovieDetail(html) {
             }
         }
 
-        // ĐÃ SỬA: Đồng bộ cấu trúc Object trả về chính xác 100% theo chuẩn file rophim.js gốc
         return JSON.stringify({
             "id": movieUrl || "unknown",
             "title": title,
