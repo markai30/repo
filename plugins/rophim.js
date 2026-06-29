@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -91,10 +91,16 @@ function parseListResponse(html) {
                 "backdropUrl": cleanThumb
             });
         }
-        
+        var $page = html.match(/<input class="form-control v-form-control" required="" max="(\d+)" type="number" value="(\d+)"/);
+        var $curent = 1;
+        var $total = 1;
+        if($page && $page[2]){
+        	$curent = $page[2];
+        	$total = $page[1];
+		}
         return JSON.stringify({
             "items": items,
-            "pagination": { "currentPage": 1, "totalPages": 1 }
+            "pagination": { "currentPage": $curent, "totalPages": $total }
         });
     } catch (e) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
