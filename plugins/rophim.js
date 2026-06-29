@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -17,20 +17,25 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "phim-le", "title": "Phim Lẻ Mới", "type": "Horizontal" },
-        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Horizontal" },
-        { "slug": "phim-18", "title": "Phim 18+", "type": "Horizontal" },
-        { "slug": "phim-hai", "title": "Phim Hài", "type": "Horizontal" },
-        { "slug": "kinh-di", "title": "Phim Kinh Dị", "type": "Horizontal" },
-        { "slug": "hoat-hinh", "title": "Phim Hoạt Hình", "type": "Horizontal" },
-        { "slug": "hanh-dong", "title": "Phim Hành Động", "type": "Horizontal" }
+        { "slug": "phim-le", "title": "Phim Lẻ Mới", "type": "Grid" },
+        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Grid" },
+        { "slug": "phim-18", "title": "Phim 18+", "type": "Grid" },
+        { "slug": "phim-hai", "title": "Phim Hài", "type": "Grid" },
+        { "slug": "kinh-di", "title": "Phim Kinh Dị", "type": "Grid" },
+        { "slug": "hoat-hinh", "title": "Phim Hoạt Hình", "type": "Grid" },
+        { "slug": "hanh-dong", "title": "Phim Hành Động", "type": "Grid" }
     ]);
 }
 
 function getPrimaryCategories() {
     return JSON.stringify([
         { "name": "Hành Động", "slug": "hanh-dong" },
-        { "name": "Kinh Dị", "slug": "kinh-di" }
+        { "name": "Kinh Dị", "slug": "kinh-di" },
+        { "slug": "phim-18", "name": "Phim 18+"},
+        { "slug": "phim-hai", "name": "Phim Hài"},
+        { "slug": "chien-tranh", "name": "Phim Chiến Tranh"},
+        { "slug": "hoat-hinh", "name": "Phim Hoạt Hình"},
+        { "slug": "vien-tuong", "name": "Phim Viễn Tưởng"}
     ]);
 }
 
