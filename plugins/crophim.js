@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - crophim (Bản Vá Lỗi Cú Pháp Regex & Runtime Engine)
+// VAAPP Plugin - crophim (Bản vá lỗi Overload Memory & Đồng bộ Cấu trúc Rophim gốc)
 // =============================================================================
 
 function getManifest() {
@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.5",             
+        "version": "1.1",             
         "baseUrl": "https://coon.pro", 
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -149,40 +149,40 @@ function parseMovieDetail(html) {
         var movieUrl = "";
         var episodes = [];
 
-        // ĐÃ SỬA: Loại bỏ toàn bộ escape lỗi (\=, \") trong regex split
-        var titleMatch = html.split(/<h1 class="page-title">([\s\S]*?)<\/h1>/);
+        // ĐÃ SỬA: Chuyển hoàn toàn từ .split() sang .match() để tối ưu bộ nhớ Engine Mobile
+        var titleMatch = html.match(/<h1 class="page-title">([\s\S]*?)<\/h1>/i);
         if (titleMatch && titleMatch[1]) {
             title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var yearMatch = html.split(/<div class="tag-link">([\s\S]*?)<\/div>/);
+        var yearMatch = html.match(/<div class="tag-link">([\s\S]*?)<\/div>/i);
         if (yearMatch && yearMatch[1]) {
             year = yearMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var desMatch = html.split(/<div class="video-info-item video-info-content">([\s\S]*?)<\/div>/);
+        var desMatch = html.match(/<div class="video-info-item video-info-content">([\s\S]*?)<\/div>/i);
         if (desMatch && desMatch[1]) {
             des = desMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var imgMatch = html.split(/<div class="module-item-pic">[\s\S]*?<img[\s\S]*?src="([\s\S]*?)"/);
+        var imgMatch = html.match(/<div class="module-item-pic">[\s\S]*?<img[\s\S]*?src="([\s\S]*?)"/i);
         if (imgMatch && imgMatch[1]) {
             img = imgMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var urlMatch = html.split(/<div class="video-info-footer display">[\s\S]*?<a[\s\S]*?href="([\s\S]*?)"/);
+        var urlMatch = html.match(/<div class="video-info-footer display">[\s\S]*?<a[\s\S]*?href="([\s\S]*?)"/i);
         if (urlMatch && urlMatch[1]) {
             movieUrl = urlMatch[1].replace(/<[^>]*>/g, '').trim();
 
             if (movieUrl.indexOf("full") > -1) {
                 episodes.push({
                     "id": movieUrl,
-                    "slug": 1,
+                    "slug": "1",
                     "name": "Full Tập",
                     "url": movieUrl
                 });
             } else {
-                var pageMatch = html.split(/<span class="video-info-itemtitle">Thời lượng：[\s\S]*?<div class="video-info-item">([\s\S]*?)<\/div>/);
+                var pageMatch = html.match(/<span class="video-info-itemtitle">Thời lượng：[\s\S]*?<div class="video-info-item">([\s\S]*?)<\/div>/i);
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
@@ -201,7 +201,7 @@ function parseMovieDetail(html) {
                         var fullLink = linkGoc + "tap-" + j + "-" + linkSer;
                         episodes.push({
                             "id": fullLink,
-                            "slug": j,
+                            "slug": String(j),
                             "name": "Tập " + j,
                             "url": fullLink
                         });
@@ -209,7 +209,7 @@ function parseMovieDetail(html) {
                 } else if (movieUrl) {
                     episodes.push({
                         "id": movieUrl,
-                        "slug": 1,
+                        "slug": "1",
                         "name": "Tập 1",
                         "url": movieUrl
                     });
@@ -217,29 +217,26 @@ function parseMovieDetail(html) {
             }
         }
 
+        // ĐÃ SỬA: Đồng bộ cấu trúc Object trả về chính xác 100% theo chuẩn file rophim.js gốc
         return JSON.stringify({
             "id": movieUrl || "unknown",
             "title": title,
             "posterUrl": img,
             "backdropUrl": img,
             "description": des,
+            "year": year,
+            "rating": 10,
+            "quality": "HD",
             "servers": [
                 {
                     "name": "Server Vietsub",
                     "episodes": episodes
                 }
-            ],
-            "quality": "HD",
-            "year": year,
-            "rating": 8.0,
-            "status": episodes.length > 1 ? "Tập " + episodes.length : "Full",
-            "duration": "???",
-            "casts": "???",
-            "director": "???"
+            ]
         });
 
     } catch (e) {
-        return JSON.stringify({ "id": "", "title": "Lỗi tải dữ liệu", "servers": [] });
+        return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
     }
 }
 
