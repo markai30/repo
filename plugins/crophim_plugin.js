@@ -1,14 +1,14 @@
 // =============================================================================
-// VAAPP Plugin - Crophim (Bản chuẩn hóa Thuần ES5 - Khử lỗi biên dịch trên Mobile)
+// VAAPP Plugin - Crophim New Core (Tên file bắt buộc: crophim_plugin.js)
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "crophim",          
-        "name": "Crophim",
-        "description": "Phim Online",
-        "version": "1.4",             
-        "baseUrl": "https://coon.pro/",
+        "id": "crophim_core_fixed",          
+        "name": "Crophim Pro",
+        "description": "Nguồn Phim Online",
+        "version": "1.0.5",             
+        "baseUrl": "https://coon.pro",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE"
@@ -36,13 +36,9 @@ function getPrimaryCategories() {
     ]);
 }
 
-function getFilters() {
-    return JSON.stringify({
-        "sort": [
-            { "name": "Mới nhất", "value": "newest" }
-        ]
-    });
-}
+function getPrimaryCountries() { return JSON.stringify([]); }
+function getPrimaryYears() { return JSON.stringify([]); }
+function getFilters() { return JSON.stringify([]); }
 
 // =============================================================================
 // URL GENERATION
@@ -138,7 +134,7 @@ function parseSearchResponse(html) {
 function parseMovieDetail(html) {
     try {
         var title = "Chưa rõ tên phim";
-        var year = "????";
+        var year = "2026";
         var des = "Chưa có mô tả.";
         var img = "";
         var movieUrl = "";
@@ -161,12 +157,7 @@ function parseMovieDetail(html) {
             movieUrl = uMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim();
 
             if (movieUrl.indexOf("full") > -1) {
-                episodes.push({
-                    "id": movieUrl,
-                    "slug": "1",
-                    "name": "Full Tập",
-                    "url": movieUrl
-                });
+                episodes.push({ "id": movieUrl, "slug": "1", "name": "Full Tập", "url": movieUrl });
             } else {
                 var pageMatch = html.match(new RegExp('<span class="video-info-itemtitle">Thời lượng[\\s\\S]*?<div class="video-info-item">([\\s\\S]*?)<\\/div>', 'i'));
                 var totalEpisodes = 0;
@@ -185,20 +176,10 @@ function parseMovieDetail(html) {
 
                     for (var j = 1; j <= totalEpisodes; j++) {
                         var fullLink = linkGoc + "tap-" + j + "-" + linkSer;
-                        episodes.push({
-                            "id": fullLink,
-                            "slug": String(j),
-                            "name": "Tập " + j,
-                            "url": fullLink
-                        });
+                        episodes.push({ "id": fullLink, "slug": String(j), "name": "Tập " + j, "url": fullLink });
                     }
                 } else if (movieUrl) {
-                    episodes.push({
-                        "id": movieUrl,
-                        "slug": "1",
-                        "name": "Tập 1",
-                        "url": movieUrl
-                    });
+                    episodes.push({ "id": movieUrl, "slug": "1", "name": "Tập 1", "url": movieUrl });
                 }
             }
         }
@@ -209,16 +190,10 @@ function parseMovieDetail(html) {
             "posterUrl": img,
             "backdropUrl": img,
             "description": des,
-            "servers": [
-                {
-                    "name": "Server Vietsub",
-                    "episodes": episodes
-                }
-            ],
-            "quality": "HD",
             "year": year,
-            "rating": 8.0,
-            "status": episodes.length > 1 ? "Tập " + episodes.length : "Full"
+            "rating": 10,
+            "quality": "HD",
+            "servers": [{ "name": "Server Vietsub", "episodes": episodes }]
         });
 
     } catch (e) {
