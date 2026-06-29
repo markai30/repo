@@ -1,34 +1,26 @@
 // =============================================================================
-// VAAPP Plugin Template - RophimFake
-// =============================================================================
-
-// =============================================================================
-// NHÓM 1: CẤU HÌNH (Config & Metadata)
+// VAAPP Plugin - Rophim Fake (Bản vá chuẩn tương thích hệ thống)
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "rophimnew_v2",          // Đổi hẳn ID để App xóa cache cũ
+        "id": "rophim_fixed_2026",          
         "name": "RophimFake",
-        "description": "Nguồn xem phim PhimVN2Y",
-        "version": "1.0.2",             
-        "baseUrl": "https://phimvn2y.com/",
-        "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/icon-48x48.png",
+        "description": "Nguồn xem phim PhimVN2Y ổn định",
+        "version": "1.1.1",             
+        "baseUrl": "https://phimvn2y.com",
+        "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", // Dùng tạm icon sạch test
         "isEnabled": true,
-        "isAdult": false,
-        "type": "MOVIE",                
-        "layoutType": "VERTICAL",       
-        "playerType": "auto"       
+        "type": "MOVIE"
     });
 }
 
 function getHomeSections() {
     return JSON.stringify([
-        // SỬA LỖI: Điền giá trị vào trường 'path' để App có đường dẫn Fetch dữ liệu
-        { slug: 'phim-le', title: 'Phim Lẻ Mới', type: 'Horizontal', path: 'phim-le' },
-        { slug: 'phim-bo', title: 'Phim Bộ Mới', type: 'Horizontal', path: 'phim-bo' },
-        { slug: 'phim-chieu-rap', title: 'Phim Chiếu Rạp', type: 'Horizontal', path: 'phim-chieu-rap' },
-        { slug: 'phim-long-tieng', title: 'Phim Lồng Tiếng', type: 'Horizontal', path: 'phim-long-tieng' }
+        { slug: 'phim-le', title: 'Phim Lẻ Mới', type: 'Horizontal', path: 'danh-sach' },
+        { slug: 'phim-bo', title: 'Phim Bộ Mới', type: 'Horizontal', path: 'danh-sach' },
+        { slug: 'phim-chieu-rap', title: 'Phim Chiếu Rạp', type: 'Horizontal', path: 'danh-sach' },
+        { slug: 'phim-long-tieng', title: 'Phim Lồng Tiếng', type: 'Horizontal', path: 'danh-sach' }
     ]);
 }
 
@@ -38,17 +30,20 @@ function getPrimaryCategories() {
         { name: 'Kinh Dị', slug: 'kinh-di' },
         { name: 'Viễn Tưởng', slug: 'vien-tuong' },
         { name: 'Khoa Học', slug: 'khoa-hoc' },
-        { name: 'Hoạt Hình', slug: 'hoat-hinh' }, // Đã xóa dấu cách thừa
-        { name: '18+', slug: 'phim-18' }
+        { name: 'Hoạt Hình', slug: 'hoat-hinh' }
     ]);
 }
 
 function getFilterConfig() {
-    return JSON.stringify({ sort: [], category: [] });
+    return JSON.stringify({
+        sort: [
+            { name: 'Mới nhất', value: 'newest' }
+        ]
+    });
 }
 
 // =============================================================================
-// NHÓM 2: SINH URL (Hàm "Vẽ Đường Cho App Đi")
+// URL GENERATION
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
@@ -58,12 +53,11 @@ function getUrlList(slug, filtersJson) {
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    var page = JSON.parse(filtersJson || "{}").page || 1;
     return "https://phimvn2y.com/tim-kiem/?q=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
-    // SỬA LỖI ĐỊNH TUYẾN: Nếu slug truyền vào đã có sẵn domain hoặc dấu gạch chéo
+    if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
     if (slug.indexOf('/') === 0) return "https://phimvn2y.com" + slug;
     return "https://phimvn2y.com/" + slug;
@@ -74,7 +68,7 @@ function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
-// NHÓM 3: PARSER (Hàm "Mổ Xẻ Thịt")
+// PARSERS
 // =============================================================================
 
 function parseListResponse(html) {
@@ -85,11 +79,11 @@ function parseListResponse(html) {
         
         while ((match = regex.exec(html)) !== null) {
             var cleanThumb = match[3].replace(/&amp;/g, '&'); 
-            
             items.push({
                 id: match[2],          
                 title: match[1].trim(), 
-                posterUrl: cleanThumb   
+                posterUrl: cleanThumb,
+                backdropUrl: cleanThumb
             });
         }
         
@@ -106,25 +100,17 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-function parseMovieDetail(html) {
+// ĐÃ SỬA: Thêm tham số fallbackUrl cho đúng signature hệ thống của App
+function parseMovieDetail(html, fallbackUrl) {
     try {
         var titleMatch = html.match(/<h2[^>]*class="[^"]*heading-md media-name[^"]*"[^>]*>([\s\S]*?)<\/h2>/i);
-        var title = "Chưa rõ tên phim";
-        if (titleMatch) {
-            title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
-        }
+        var title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : "Chưa rõ tên phim";
 
         var posterMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
         var posterUrl = posterMatch ? posterMatch[1] : "";
 
         var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
         var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
-
-        var qualityMatch = html.match(/<li>[^<]*<strong>Chất lượng:<\/strong>\s*([^<]+)/i);
-        var quality = qualityMatch ? qualityMatch[1].trim() : "HD";
-
-        var statusMatch = html.match(/<li>[^<]*<strong>Ngôn ngữ:<\/strong>\s*([^<]+)/i);
-        var status = statusMatch ? statusMatch[1].trim() : "Vietsub";
 
         var episodes = [];
         var checkedUrls = {}; 
@@ -141,7 +127,7 @@ function parseMovieDetail(html) {
                 episodes.push({
                     id: videoStreamUrl, 
                     name: epName,
-                    slug: epName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+                    slug: videoStreamUrl
                 });
             }
         }
@@ -152,79 +138,54 @@ function parseMovieDetail(html) {
             episodes.push({ id: currentUrl, name: "Full", slug: "full" });
         }
 
-        var movieId = title.toLowerCase().replace(/[^a-z0-9]/g, '-');
-
         return JSON.stringify({
-            id: movieId,
+            id: title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
             title: title,
             posterUrl: posterUrl,
             backdropUrl: posterUrl,
             description: description,
+            year: 2026,
+            rating: 10,
+            quality: "HD",
             servers: [
                 {
                     name: "Nguồn Phim VN",
                     episodes: episodes
                 }
-            ],
-            quality: quality,
-            year: 2026,
-            rating: 9.0,
-            status: status,
-            duration: "Đang cập nhật",
-            casts: "Đang cập nhật",
-            director: "Đang cập nhật",
-            category: "Hoạt Hình"
+            ]
         });
 
     } catch (error) {
-        return JSON.stringify({
-            id: "error",
-            title: "Lỗi phân tích dữ liệu",
-            posterUrl: "",
-            servers: [{ name: "Sơ cua", episodes: [] }]
-        });
+        return JSON.stringify({ id: "error", title: "Lỗi", servers: [] });
     }
 }
 
-function parseDetailResponse(html) {
+// ĐÃ SỬA: Thêm tham số fallbackUrl cho chuẩn cấu trúc
+function parseDetailResponse(html, fallbackUrl) {
     try {
-        var activeEpRegex = /class="[^"]*item-ep[^"]*active[^"]*"[^>]*data-m3u8="([^"]+)"[^>]*data-embed="([^2]+)"/i;
+        var activeEpRegex = /class="[^"]*item-ep[^"]*active[^"]*"[^>]*data-m3u8="([^"]+)"[^>]*data-embed="([^"]+)"/i;
         var match = html.match(activeEpRegex);
         
-        var videoUrl = "";
-        var refererUrl = "https://vip.opstream11.com/"; 
-
-        if (match) {
-            videoUrl = match[1] ? match[1].trim() : match[2].trim();
-            if (videoUrl.indexOf('share') !== -1) {
-                refererUrl = videoUrl; 
-            }
-        }
+        var videoUrl = match ? (match[1] ? match[1].trim() : match[2].trim()) : "";
 
         if (!videoUrl) {
             var backupMatch = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
-            videoUrl = backupMatch ? backupMatch[1] : "https://cdn.example.com/video.m3u8";
+            videoUrl = backupMatch ? backupMatch[1] : (fallbackUrl || "");
         }
 
         return JSON.stringify({
             url: videoUrl, 
             headers: {
-                "Referer": refererUrl, 
+                "Referer": "https://phimvn2y.com/", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            },
-            subtitles: []
+            }
         });
 
     } catch (e) {
-        return JSON.stringify({
-            url: "https://cdn.example.com/video.m3u8",
-            headers: { "Referer": "https://vip.opstream11.com/" },
-            subtitles: []
-        });
+        return JSON.stringify({ url: fallbackUrl || "", headers: {} });
     }
 }
 
-function parseEmbedResponse(html, sourceUrl) { return JSON.stringify({ url: "", isEmbed: false }); }
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
 function parseYearsResponse(html) { return "[]"; }
