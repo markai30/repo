@@ -1,11 +1,11 @@
 function getManifest() {
     return JSON.stringify({
-        "id": "sportshots_pure_es5",          
-        "name": "Crophim Pro",
-        "description": "Phim Online",
-        "version": "1.3",             
-        "baseUrl": "https://sportshots.pro", 
-        "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
+        "id": "rophim12",          
+        "name": "RophimFake12",
+        "description": "Nguồn xem phim PhimVN2Y ổn định",
+        "version": "1.32",             
+        "baseUrl": "https://phimvn2y.com",
+        "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
         "type": "MOVIE"
     });
