@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.2",             
+        "version": "1.3",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -104,7 +104,7 @@ function parseMovieDetail(html) {
         var posterMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
         var posterUrl = posterMatch ? posterMatch[1] : "";
 
-        var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
+        var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
         var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
 
         var episodes = [];
@@ -163,7 +163,7 @@ function parseMovieDetail(html) {
             "quality": "HD",
             "servers": [
                 {
-                    "name": "Nguồn Phim VN",
+                    "name": "Rophim Fake",
                     "episodes": episodes
                 }
             ]
