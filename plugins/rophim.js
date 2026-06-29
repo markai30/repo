@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -18,7 +18,12 @@ function getManifest() {
 function getHomeSections() {
     return JSON.stringify([
         { "slug": "phim-le", "title": "Phim Lẻ Mới", "type": "Horizontal" },
-        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Horizontal" }
+        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Horizontal" },
+        { "slug": "phim-18", "title": "Phim 18+", "type": "Horizontal" },
+        { "slug": "phim-hai", "title": "Phim Hài", "type": "Horizontal" },
+        { "slug": "kinh-di", "title": "Phim Kinh Dị", "type": "Horizontal" },
+        { "slug": "hoat-hinh", "title": "Phim Hoạt Hình", "type": "Horizontal" },
+        { "slug": "hanh-dong", "title": "Phim Hành Động", "type": "Horizontal" }
     ]);
 }
 
