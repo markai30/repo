@@ -19,7 +19,7 @@
             "id": "test",
             "name": "Test Phim",
             "version": "1.0",
-            "scriptUrl": "https://pagea.uk/crophimjs",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/test.js",
             "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/icon-48x48.png"
         }
     ]
