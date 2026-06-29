@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - Rophim Fake (Bản vá chống lỗi định dạng JSON & Cấu trúc hệ thống)
+// VAAPP Plugin - crophim (Bản chuẩn hóa cú pháp Inline hoàn toàn)
 // =============================================================================
 
 function getManifest() {
@@ -7,46 +7,42 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.6",             
-        "baseUrl": "https://coon.pro/",
+        "version": "1.0",             
+        "baseUrl": "https://coon.pro", // ĐÃ SỬA: Bỏ dấu / ở cuối
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE"
     });
 }
 
-// ĐÃ SỬA: Chuyển sang Object thuần rồi mới stringify để tránh lỗi ký tự đặc biệt (&)
 function getHomeSections() {
-    var sections = [
+    // ĐÃ SỬA: Trả về trực tiếp (Inline), đưa các tham số query về dạng slug sạch
+    return JSON.stringify([
         { "slug": "chuyen-muc/motphim", "title": "Phim Mới", "type": "Grid" },
         { "slug": "chuyen-muc/phim-le", "title": "Phim Lẻ", "type": "Grid" }
-    ];
-    return JSON.stringify(sections);
+    ]);
 }
 
-// ĐÃ SỬA: Chuẩn hóa đóng gói mảng danh mục an toàn
 function getPrimaryCategories() {
-    var categories = [
-        { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
-        { "name": "Kinh Dị", "slug": "?s=&genres=kinh-di" },
-        { "name": "Phim 18+", "slug": "?s=&genres=phim-18" },
-        { "name": "Phim Hài", "slug": "?s=&genres=hai-huoc" },
-        { "name": "Phim Chiến Tranh", "slug": "?s=&genres=chien-tranh" },
-        { "name": "Phim Hoạt Hình", "slug": "?s=&genres=hoat-hinh" },
-        { "name": "Viễn Tưởng", "slug": "?s=&genres=vien-tuong" }
-    ];
-    return JSON.stringify(categories);
+    // ĐÃ SỬA: Trả về trực tiếp theo chuẩn danh mục sạch
+    return JSON.stringify([
+        { "name": "Hành Động", "slug": "hanh-dong" },
+        { "name": "Kinh Dị", "slug": "kinh-di" },
+        { "name": "Phim 18+", "slug": "phim-18" },
+        { "name": "Phim Hài", "slug": "hai-huoc" },
+        { "name": "Phim Chiến Tranh", "slug": "chien-tranh" },
+        { "name": "Phim Hoạt Hình", "slug": "hoat-hinh" },
+        { "name": "Viễn Tưởng", "slug": "vien-tuong" }
+    ]);
 }
 
-// ĐÃ SỬA: Cấu trúc lại bộ lọc thành dạng MẢNG (ARRAY) theo đúng chuẩn Core
-// SỬA LẠI: Trả về Object theo đúng chuẩn chung của App để không bị crash khi cài đặt
 function getFilters() {
-    var filtersConfig = {
+    // ĐÃ SỬA: Cấu trúc Object chuẩn của Core
+    return JSON.stringify({
         "sort": [
             { "name": "Mới nhất", "value": "newest" }
         ]
-    };
-    return JSON.stringify(filtersConfig);
+    });
 }
 
 // =============================================================================
@@ -56,7 +52,12 @@ function getFilters() {
 function getUrlList(slug, filtersJson) {
     var filters = JSON.parse(filtersJson || "{}");
     var page = filters.page || 1;
-    return "https://coon.pro/page/" + page + "/" + slug;
+    
+    // ĐÃ SỬA: Xử lý build URL chính xác tùy theo việc phân trang của nguồn coon.pro
+    if (slug === "motphim" || slug === "phim-le" || slug === "phim-ngan" || slug === "phim-bo") {
+        return "https://coon.pro/page/" + page + "/?s=&categories=" + slug;
+    }
+    return "https://coon.pro/page/" + page + "/?s=&genres=" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
@@ -138,7 +139,7 @@ function parseSearchResponse(html) {
 function parseMovieDetail(html) {
     try {
         var title = "Chưa rõ tên phim";
-        var year = "????";
+        var year = "2026";
         var des = "Chưa có mô tả.";
         var img = "";
         var movieUrl = "";
