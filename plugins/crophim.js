@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - crophim (Bản vá lỗi Encoding Ký tự đặc biệt & Khóa Regex)
+// VAAPP Plugin - crophim (Bản chuẩn hóa Core System & Cấu trúc Filter)
 // =============================================================================
 
 function getManifest() {
@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.2",             
+        "version": "2.1",             
         "baseUrl": "https://sportshots.pro", 
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -36,12 +36,21 @@ function getPrimaryCategories() {
     ]);
 }
 
+// ĐÃ BỔ SUNG: Các hàm danh mục hệ thống bắt buộc phải có để App check khi cài
+function getPrimaryCountries() { return "[]"; }
+function getPrimaryYears() { return "[]"; }
+
+// ĐÃ SỬA: Đưa cấu trúc filter về dạng Mảng (Array) chuẩn Core Vax
 function getFilters() {
-    return JSON.stringify({
-        "sort": [
-            { "name": "Mới nhất", "value": "newest" }
-        ]
-    });
+    return JSON.stringify([
+        {
+            "name": "Sắp xếp",
+            "type": "sort",
+            "items": [
+                { "name": "Mới nhất", "value": "newest" }
+            ]
+        }
+    ]);
 }
 
 // =============================================================================
@@ -187,13 +196,12 @@ function parseMovieDetail(html) {
                     "url": movieUrl
                 });
             } else {
-                // ĐÃ SỬA: Thay dấu hai chấm tiếng Trung (：) bằng [\s\S]? để tránh lỗi biên dịch chữ lạ
                 var pageMatch = html.match(/<span class="video-info-itemtitle">Thời lượng[\s\S]?[\s\S]*?<div class="video-info-item">([\s\S]*?)<\/div>/i);
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
-                    // Tránh lỗi escape dấu gạch đứng nếu engine nghiêm ngặt
-                    var numMatch = pageMatch[1].match(/\|\s(\d+)\s\|/) || pageMatch[1].match(/(\d+)/);
+                    // ĐÃ SỬA: Loại bỏ hẳn toán tử gạch đứng | gây lỗi biên dịch lặp ký tự
+                    var numMatch = pageMatch[1].match(/(\d+)/);
                     if (numMatch && numMatch[1]) {
                         totalEpisodes = parseInt(numMatch[1], 10);
                     }
