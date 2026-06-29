@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://coon.pro/",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -39,16 +39,13 @@ function getPrimaryCategories() {
 }
 
 // ĐÃ SỬA: Cấu trúc lại bộ lọc thành dạng MẢNG (ARRAY) theo đúng chuẩn Core
+// SỬA LẠI: Trả về Object theo đúng chuẩn chung của App để không bị crash khi cài đặt
 function getFilters() {
-    var filtersConfig = [
-        {
-            "id": "sort",
-            "name": "Sắp xếp",
-            "items": [
-                { "name": "Mới nhất", "value": "newest" }
-            ]
-        }
-    ];
+    var filtersConfig = {
+        "sort": [
+            { "name": "Mới nhất", "value": "newest" }
+        ]
+    };
     return JSON.stringify(filtersConfig);
 }
 
