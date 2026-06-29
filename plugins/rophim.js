@@ -13,7 +13,7 @@ function getManifest() {
         "description": "Nguồn xem phim PhimVN2Y",
         "version": "1.0.2",             
         "baseUrl": "https://phimvn2y.com/",
-        "iconUrl": "https://url-icon-vuong.png",
+        "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/icon-48x48.png",
         "isEnabled": true,
         "isAdult": false,
         "type": "MOVIE",                
