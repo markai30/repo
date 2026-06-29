@@ -133,6 +133,13 @@
             "version": "1.0.1",
             "scriptUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/misskon_plugin.js",
             "iconUrl": "https://misskon.com/favicon.ico"
+        },
+        {
+            "id": "rophim",
+            "name": "Rổ Phim",
+            "version": "1.01",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/rophim.js",
+            "iconUrl": "https://phimvn2y.com/wp-content/themes/rophim-2/assets/images/icon-48x48.png"
         }
     ]
 }
