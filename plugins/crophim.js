@@ -1,13 +1,13 @@
 // =============================================================================
-// VAAPP Plugin - crophim (Bản chuẩn hóa Core System & Cấu trúc Filter)
+// VAAPP Plugin - sportshots (Bản tinh giản Định danh & Khởi tạo Core)
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "crophim",          
-        "name": "crophim",
+        "id": "sportshots",          // ĐÃ ĐỔI: Tránh trùng lặp cache id cũ trong app
+        "name": "Crophim Pro",
         "description": "Phim Online",
-        "version": "2.1",             
+        "version": "1.0",             
         "baseUrl": "https://sportshots.pro", 
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -36,22 +36,10 @@ function getPrimaryCategories() {
     ]);
 }
 
-// ĐÃ BỔ SUNG: Các hàm danh mục hệ thống bắt buộc phải có để App check khi cài
-function getPrimaryCountries() { return "[]"; }
-function getPrimaryYears() { return "[]"; }
-
-// ĐÃ SỬA: Đưa cấu trúc filter về dạng Mảng (Array) chuẩn Core Vax
-function getFilters() {
-    return JSON.stringify([
-        {
-            "name": "Sắp xếp",
-            "type": "sort",
-            "items": [
-                { "name": "Mới nhất", "value": "newest" }
-            ]
-        }
-    ]);
-}
+// Chuẩn hóa hàm hệ thống trả về chuỗi qua JSON.stringify
+function getPrimaryCountries() { return JSON.stringify([]); }
+function getPrimaryYears() { return JSON.stringify([]); }
+function getFilters() { return JSON.stringify([]); }
 
 // =============================================================================
 // URL GENERATION
@@ -200,7 +188,6 @@ function parseMovieDetail(html) {
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
-                    // ĐÃ SỬA: Loại bỏ hẳn toán tử gạch đứng | gây lỗi biên dịch lặp ký tự
                     var numMatch = pageMatch[1].match(/(\d+)/);
                     if (numMatch && numMatch[1]) {
                         totalEpisodes = parseInt(numMatch[1], 10);
@@ -286,6 +273,6 @@ function parseDetailResponse(html) {
     }
 }
 
-function parseCategoriesResponse(html) { return "[]"; }
-function parseCountriesResponse(html) { return "[]"; }
-function parseYearsResponse(html) { return "[]"; }
+function parseCategoriesResponse(html) { return JSON.stringify([]); }
+function parseCountriesResponse(html) { return JSON.stringify([]); }
+function parseYearsResponse(html) { return JSON.stringify([]); }
