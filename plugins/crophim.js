@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://coon.pro", // ĐÃ SỬA: Bỏ dấu / ở cuối
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -18,8 +18,10 @@ function getManifest() {
 function getHomeSections() {
     // ĐÃ SỬA: Trả về trực tiếp (Inline), đưa các tham số query về dạng slug sạch
     return JSON.stringify([
-        { "slug": "chuyen-muc/motphim", "title": "Phim Mới", "type": "Grid" },
-        { "slug": "chuyen-muc/phim-le", "title": "Phim Lẻ", "type": "Grid" }
+        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" },
+        { "slug": "phim-le", "title": "Phim Lẻ", "type": "Grid" },
+        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
+        { "slug": "phim-bo", "title": "Phim Bộ", "type": "Grid" }
     ]);
 }
 
