@@ -1,15 +1,15 @@
 // =============================================================================
-// VAAPP Plugin - sportshots (Bản Thuần ES5 - Khử Lỗi Biên Dịch Regex)
+// VAAPP Plugin - Crophim (Bản chuẩn hóa Thuần ES5 - Khử lỗi biên dịch trên Mobile)
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "sportshots_pure_es5",          
-        "name": "Crophim Pro",
+        "id": "crophim",          
+        "name": "Crophim",
         "description": "Phim Online",
-        "version": "1.6",             
-        "baseUrl": "https://sportshots.pro", 
-        "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
+        "version": "1.4",             
+        "baseUrl": "https://coon.pro/",
+        "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE"
     });
@@ -17,28 +17,32 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" },
-        { "slug": "phim-le", "title": "Phim Lẻ", "type": "Grid" },
-        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
-        { "slug": "phim-bo", "title": "Phim Bộ", "type": "Grid" }
+        { "slug": "?s=&categories=motphim", "title": "Phim Mới", "type": "Grid" },
+        { "slug": "?s=&categories=phim-le", "title": "Phim Lẻ", "type": "Grid" },
+        { "slug": "?s=&categories=phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
+        { "slug": "?s=&categories=phim-bo", "title": "Phim Bộ", "type": "Grid" }
     ]);
 }
 
 function getPrimaryCategories() {
     return JSON.stringify([
-        { "name": "Hành Động", "slug": "hanh-dong" },
-        { "name": "Kinh Dị", "slug": "kinh-di" },
-        { "name": "Phim 18+", "slug": "phim-18" },
-        { "name": "Phim Hài", "slug": "hai-huoc" },
-        { "name": "Phim Chiến Tranh", "slug": "chien-tranh" },
-        { "name": "Phim Hoạt Hình", "slug": "hoat-hinh" },
-        { "name": "Viễn Tưởng", "slug": "vien-tuong" }
+        { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
+        { "name": "Kinh Dị", "slug": "?s=&genres=kinh-di" },
+        { "name": "Phim 18+", "slug": "?s=&genres=phim-18" },
+        { "name": "Phim Hài", "slug": "?s=&genres=hai-huoc" },
+        { "name": "Phim Chiến Tranh", "slug": "?s=&genres=chien-tranh" },
+        { "name": "Phim Hoạt Hình", "slug": "?s=&genres=hoat-hinh" },
+        { "name": "Viễn Tưởng", "slug": "?s=&genres=vien-tuong" }
     ]);
 }
 
-function getPrimaryCountries() { return JSON.stringify([]); }
-function getPrimaryYears() { return JSON.stringify([]); }
-function getFilters() { return JSON.stringify([]); }
+function getFilters() {
+    return JSON.stringify({
+        "sort": [
+            { "name": "Mới nhất", "value": "newest" }
+        ]
+    });
+}
 
 // =============================================================================
 // URL GENERATION
@@ -51,29 +55,18 @@ function getUrlList(slug, filtersJson) {
             filters = JSON.parse(filtersJson);
         }
     } catch(e) {}
-    
     var page = filters.page || 1;
-    var pathType = "chuyen-muc"; 
-    
-    if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
-        pathType = "the-loai"; 
-    }
-    
-    if (page === 1) {
-        return "https://sportshots.pro/" + pathType + "/" + slug + "/";
-    } else {
-        return "https://sportshots.pro/" + pathType + "/" + slug + "/page/" + page + "/";
-    }
+    return "https://coon.pro/page/" + page + "/" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://sportshots.pro/?s=" + encodeURIComponent(keyword);
+    return "https://coon.pro/?s=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
-    if (!slug) { return ""; }
-    if (slug.indexOf('http') === 0) { return slug; }
-    return "https://sportshots.pro/" + slug;
+    if (!slug) return "";
+    if (slug.indexOf('http') === 0) return slug;
+    return "https://coon.pro/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -87,7 +80,6 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        // Chuyển sang dạng tường minh để an toàn cho bộ cài Android
         var regexList = new RegExp('<div class="module-item-pic"><a\\s+href="([^"]+)"\\s+title="([^"]+)"[\\s\\S]*?<img[^>]*data-src="([^"]+)"', 'g');
         var matchList;
         
@@ -146,7 +138,7 @@ function parseSearchResponse(html) {
 function parseMovieDetail(html) {
     try {
         var title = "Chưa rõ tên phim";
-        var year = "2026";
+        var year = "????";
         var des = "Chưa có mô tả.";
         var img = "";
         var movieUrl = "";
@@ -169,9 +161,14 @@ function parseMovieDetail(html) {
             movieUrl = uMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim();
 
             if (movieUrl.indexOf("full") > -1) {
-                episodes.push({ "id": movieUrl, "slug": "1", "name": "Full Tập", "url": movieUrl });
+                episodes.push({
+                    "id": movieUrl,
+                    "slug": "1",
+                    "name": "Full Tập",
+                    "url": movieUrl
+                });
             } else {
-                var pageMatch = html.match(new RegExp('<span class="video-info-itemtitle">Thời lượng[\\s\\S]?[\\s\\S]*?<div class="video-info-item">([\\s\\S]*?)<\\/div>', 'i'));
+                var pageMatch = html.match(new RegExp('<span class="video-info-itemtitle">Thời lượng[\\s\\S]*?<div class="video-info-item">([\\s\\S]*?)<\\/div>', 'i'));
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
@@ -188,10 +185,20 @@ function parseMovieDetail(html) {
 
                     for (var j = 1; j <= totalEpisodes; j++) {
                         var fullLink = linkGoc + "tap-" + j + "-" + linkSer;
-                        episodes.push({ "id": fullLink, "slug": String(j), "name": "Tập " + j, "url": fullLink });
+                        episodes.push({
+                            "id": fullLink,
+                            "slug": String(j),
+                            "name": "Tập " + j,
+                            "url": fullLink
+                        });
                     }
                 } else if (movieUrl) {
-                    episodes.push({ "id": movieUrl, "slug": "1", "name": "Tập 1", "url": movieUrl });
+                    episodes.push({
+                        "id": movieUrl,
+                        "slug": "1",
+                        "name": "Tập 1",
+                        "url": movieUrl
+                    });
                 }
             }
         }
@@ -202,10 +209,16 @@ function parseMovieDetail(html) {
             "posterUrl": img,
             "backdropUrl": img,
             "description": des,
-            "year": year,
-            "rating": 10,
+            "servers": [
+                {
+                    "name": "Server Vietsub",
+                    "episodes": episodes
+                }
+            ],
             "quality": "HD",
-            "servers": [{ "name": "Server Vietsub", "episodes": episodes }]
+            "year": year,
+            "rating": 8.0,
+            "status": episodes.length > 1 ? "Tập " + episodes.length : "Full"
         });
 
     } catch (e) {
@@ -234,7 +247,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
-                "Referer": "https://sportshots.pro/", 
+                "Referer": "https://coon.pro/", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             },
             "subtitles": []
