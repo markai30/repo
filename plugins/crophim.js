@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - Rophim Fake (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
+// VAAPP Plugin - Rophim Fake (Bản vá chống lỗi định dạng JSON & Cấu trúc hệ thống)
 // =============================================================================
 
 function getManifest() {
@@ -7,7 +7,7 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://coon.pro/",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -15,17 +15,20 @@ function getManifest() {
     });
 }
 
+// ĐÃ SỬA: Chuyển sang Object thuần rồi mới stringify để tránh lỗi ký tự đặc biệt (&)
 function getHomeSections() {
-    return JSON.stringify([
+    var sections = [
         { "slug": "?s=&categories=motphim", "title": "Phim Mới", "type": "Grid" },
         { "slug": "?s=&categories=phim-le", "title": "Phim Lẻ", "type": "Grid" },
         { "slug": "?s=&categories=phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
         { "slug": "?s=&categories=phim-bo", "title": "Phim Bộ", "type": "Grid" }
-    ]);
+    ];
+    return JSON.stringify(sections);
 }
 
+// ĐÃ SỬA: Chuẩn hóa đóng gói mảng danh mục an toàn
 function getPrimaryCategories() {
-    return JSON.stringify([
+    var categories = [
         { "name": "Hành Động", "slug": "?s=&genres=hanh-dong" },
         { "name": "Kinh Dị", "slug": "?s=&genres=kinh-di" },
         { "name": "Phim 18+", "slug": "?s=&genres=phim-18" },
@@ -33,16 +36,22 @@ function getPrimaryCategories() {
         { "name": "Phim Chiến Tranh", "slug": "?s=&genres=chien-tranh" },
         { "name": "Phim Hoạt Hình", "slug": "?s=&genres=hoat-hinh" },
         { "name": "Viễn Tưởng", "slug": "?s=&genres=vien-tuong" }
-    ]);
+    ];
+    return JSON.stringify(categories);
 }
 
-// ĐÃ SỬA: Giữ nguyên getFilters() theo chuẩn hệ thống kkphim/ophim hiện tại của bạn
+// ĐÃ SỬA: Cấu trúc lại bộ lọc thành dạng MẢNG (ARRAY) theo đúng chuẩn Core
 function getFilters() {
-    return JSON.stringify({
-        "sort": [
-            { "name": "Mới nhất", "value": "newest" }
-        ]
-    });
+    var filtersConfig = [
+        {
+            "id": "sort",
+            "name": "Sắp xếp",
+            "items": [
+                { "name": "Mới nhất", "value": "newest" }
+            ]
+        }
+    ];
+    return JSON.stringify(filtersConfig);
 }
 
 // =============================================================================
@@ -131,9 +140,6 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-/**
- * ĐÃ SỬA TOÀN BỘ: Thêm chốt chặn điều kiện (if-validate) chống crash ứng dụng mobile
- */
 function parseMovieDetail(html) {
     try {
         var title = "Chưa rõ tên phim";
@@ -143,36 +149,30 @@ function parseMovieDetail(html) {
         var movieUrl = "";
         var episodes = [];
 
-        // 1. Bóc tách Tiêu đề phim
         var titleMatch = html.split(/\<h1 class\=\"page-title\"\>([\s\S]*?)<\/h1>/);
         if (titleMatch && titleMatch[1]) {
             title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        // 2. Bóc tách Năm phát hành
         var yearMatch = html.split(/\<div class\=\"tag-link\"\>([\s\S]*?)<\/div>/);
         if (yearMatch && yearMatch[1]) {
             year = yearMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        // 3. Bóc tách Nội dung phim
         var desMatch = html.split(/\<div class\=\"video-info-item video-info-content\"\>([\s\S]*?)<\/div>/);
         if (desMatch && desMatch[1]) {
             des = desMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        // 4. Bóc tách Ảnh đại diện
         var imgMatch = html.split(/\<div class\=\"module-item-pic\"\>[\s\S]*?<img[\s\S]*?src\=\"([\s\S]*?)\"/);
         if (imgMatch && imgMatch[1]) {
             img = imgMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        // 5. Bóc tách Link tập phim cơ sở & xử lý Danh sách tập
         var urlMatch = html.split(/\<div class\=\"video-info-footer display\"\>[\s\S]*?<a[\s\S]*?href\=\"([\s\S]*?)\"/);
         if (urlMatch && urlMatch[1]) {
             movieUrl = urlMatch[1].replace(/<[^>]*>/g, '').trim();
 
-            // Trường hợp phim lẻ (có chữ "full" trong đường dẫn)
             if (movieUrl.indexOf("full") > -1) {
                 episodes.push({
                     "id": movieUrl,
@@ -181,7 +181,6 @@ function parseMovieDetail(html) {
                     "url": movieUrl
                 });
             } else {
-                // Trường hợp phim bộ: Lấy tổng số tập hiện tại
                 var pageMatch = html.split(/\<span class\=\"video-info-itemtitle\"\>Thời lượng：[\s\S]*?<div class\=\"video-info-item\"\>([\s\S]*?)\<\/div>/);
                 var totalEpisodes = 0;
 
@@ -192,7 +191,6 @@ function parseMovieDetail(html) {
                     }
                 }
 
-                // Tiến hành dựng vòng lặp tạo link tập phim nếu tìm được cấu trúc link chuẩn
                 var linkParts = movieUrl.split(/tap-(\d+)-/);
                 if (linkParts && linkParts.length >= 3 && totalEpisodes > 0) {
                     var linkGoc = linkParts[0];
@@ -208,7 +206,6 @@ function parseMovieDetail(html) {
                         });
                     }
                 } else if (movieUrl) {
-                    // Dự phòng nếu không phân tích được cấu trúc "tap-X-" thì thêm chính link gốc làm tập 1
                     episodes.push({
                         "id": movieUrl,
                         "slug": 1,
@@ -241,7 +238,6 @@ function parseMovieDetail(html) {
         });
 
     } catch (e) {
-        // Trả về Object rỗng an toàn nếu có lỗi bất ngờ xảy ra bên trong hàm
         return JSON.stringify({ "id": "", "title": "Lỗi tải dữ liệu", "servers": [] });
     }
 }
