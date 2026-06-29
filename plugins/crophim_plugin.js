@@ -1,14 +1,14 @@
 // =============================================================================
-// VAAPP Plugin - Crophim Pro (Chuẩn hóa 100% cấu trúc Core Repo gốc)
+// VAAPP Plugin - Crophim Pro (Đồng bộ cấu trúc 100% theo chuẩn RophimFake)
 // Tên file bắt buộc khi lưu: crophim_plugin.js
 // =============================================================================
 
 function getManifest() {
     return JSON.stringify({
-        "id": "crophim_v3_final",          
+        "id": "crophim_pro_eng",          
         "name": "Crophim Pro",
-        "description": "Nguồn Xem Phim Sạch",
-        "version": "2.0",             
+        "description": "Nguồn xem phim Online ổn định",
+        "version": "2",             
         "baseUrl": "https://coon.pro",
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -29,26 +29,15 @@ function getPrimaryCategories() {
     return JSON.stringify([
         { "name": "Hành Động", "slug": "hanh-dong" },
         { "name": "Kinh Dị", "slug": "kinh-di" },
-        { "name": "Phim 18+", "slug": "phim-18" },
-        { "name": "Phim Hài", "slug": "hai-huoc" },
-        { "name": "Phim Chiến Tranh", "slug": "chien-tranh" },
-        { "name": "Phim Hoạt Hình", "slug": "hoat-hinh" },
-        { "name": "Viễn Tưởng", "slug": "vien-tuong" }
+        { "slug": "phim-18", "name": "Phim 18+"},
+        { "slug": "hai-huoc", "name": "Phim Hài"},
+        { "slug": "chien-tranh", "name": "Phim Chiến Tranh"},
+        { "slug": "hoat-hinh", "name": "Phim Hoạt Hình"},
+        { "slug": "vien-tuong", "name": "Phim Viễn Tưởng"}
     ]);
 }
 
-// BỔ SUNG: Hàm cấu hình Quốc gia bắt buộc của Core Repo
-function getPrimaryCountries() { 
-    return JSON.stringify([]); 
-}
-
-// BỔ SUNG: Hàm cấu hình Năm phát hành bắt buộc của Core Repo
-function getPrimaryYears() { 
-    return JSON.stringify([]); 
-}
-
-// ĐÃ SỬA: Đổi từ getFilters thành getFilterConfig theo đúng chuẩn mẫu ophim/kkphim trong repo
-function getFilterConfig() {
+function getFilters() {
     return JSON.stringify({
         "sort": [
             { "name": "Mới nhất", "value": "newest" }
@@ -57,23 +46,16 @@ function getFilterConfig() {
 }
 
 // =============================================================================
-// URL GENERATION
+// URL GENERATION (Bóc tách slug sạch theo khuôn mẫu mới)
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
-    var filters = {};
-    try {
-        if (filtersJson && filtersJson.trim()) {
-            filters = JSON.parse(filtersJson);
-        }
-    } catch(e) {}
-    
+    var filters = JSON.parse(filtersJson || "{}");
     var page = filters.page || 1;
     
     if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
         return "https://coon.pro/page/" + page + "/?s=&genres=" + slug;
     }
-    
     return "https://coon.pro/page/" + page + "/?s=&categories=" + slug;
 }
 
@@ -102,7 +84,7 @@ function parseListResponse(html) {
         var matchList;
         
         while ((matchList = regexList.exec(html)) !== null) {
-            var cleanThumb = matchList[3].split('&amp;').join('&'); 
+            var cleanThumb = matchList[3].replace(/&amp;/g, '&'); 
             items.push({
                 "id": matchList[1],          
                 "title": matchList[2].trim(), 
@@ -228,11 +210,11 @@ function parseDetailResponse(html) {
         var videoUrl = "";
 
         if (html && typeof html === 'string') {
-            var m3u8Match = html.match(new RegExp('(https?:\\/\\/[^"\']+\\.m3u8[^"\']*)', 'i'));
+            var m3u8Match = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
             if (m3u8Match) {
                 videoUrl = m3u8Match[1].trim();
             } else {
-                var embedMatch = html.match(new RegExp('(https?:\\/\\/player[^"\']+\\/player\\/\\?url=[^"\']+)', 'i'));
+                var embedMatch = html.match(/(https?:\/\/player[^"']+\/player\/\?url=[^"']+\/)/i);
                 if (embedMatch) {
                     videoUrl = decodeURIComponent(embedMatch[1].split('url=')[1]);
                 } else if (html.indexOf("http://") === 0 || html.indexOf("https://") === 0) {
@@ -255,6 +237,7 @@ function parseDetailResponse(html) {
     }
 }
 
-function parseCategoriesResponse(html) { return JSON.stringify([]); }
-function parseCountriesResponse(html) { return JSON.stringify([]); }
-function parseYearsResponse(html) { return JSON.stringify([]); }
+// KHỚP MẪU ROPHIMFAKE: Trả về chuỗi text thuần túy thay vì gọi JSON.stringify
+function parseCategoriesResponse(html) { return "[]"; }
+function parseCountriesResponse(html) { return "[]"; }
+function parseYearsResponse(html) { return "[]"; }
