@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - crophim (Bản chuẩn hóa cú pháp Inline hoàn toàn)
+// VAAPP Plugin - crophim (Bản Vá Lỗi Cú Pháp Regex & Runtime Engine)
 // =============================================================================
 
 function getManifest() {
@@ -7,8 +7,8 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.1",             
-        "baseUrl": "https://coon.pro", // ĐÃ SỬA: Bỏ dấu / ở cuối
+        "version": "1.5",             
+        "baseUrl": "https://coon.pro", 
         "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE"
@@ -16,7 +16,6 @@ function getManifest() {
 }
 
 function getHomeSections() {
-    // ĐÃ SỬA: Trả về trực tiếp (Inline), đưa các tham số query về dạng slug sạch
     return JSON.stringify([
         { "slug": "motphim", "title": "Phim Mới", "type": "Grid" },
         { "slug": "phim-le", "title": "Phim Lẻ", "type": "Grid" },
@@ -26,7 +25,6 @@ function getHomeSections() {
 }
 
 function getPrimaryCategories() {
-    // ĐÃ SỬA: Trả về trực tiếp theo chuẩn danh mục sạch
     return JSON.stringify([
         { "name": "Hành Động", "slug": "hanh-dong" },
         { "name": "Kinh Dị", "slug": "kinh-di" },
@@ -39,7 +37,6 @@ function getPrimaryCategories() {
 }
 
 function getFilters() {
-    // ĐÃ SỬA: Cấu trúc Object chuẩn của Core
     return JSON.stringify({
         "sort": [
             { "name": "Mới nhất", "value": "newest" }
@@ -52,10 +49,15 @@ function getFilters() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
-    var filters = JSON.parse(filtersJson || "{}");
+    var filters = {};
+    try {
+        if (filtersJson && filtersJson.trim()) {
+            filters = JSON.parse(filtersJson);
+        }
+    } catch(e) {}
+    
     var page = filters.page || 1;
     
-    // ĐÃ SỬA: Xử lý build URL chính xác tùy theo việc phân trang của nguồn coon.pro
     if (slug === "motphim" || slug === "phim-le" || slug === "phim-ngan" || slug === "phim-bo") {
         return "https://coon.pro/page/" + page + "/?s=&categories=" + slug;
     }
@@ -147,27 +149,28 @@ function parseMovieDetail(html) {
         var movieUrl = "";
         var episodes = [];
 
-        var titleMatch = html.split(/\<h1 class\=\"page-title\"\>([\s\S]*?)<\/h1>/);
+        // ĐÃ SỬA: Loại bỏ toàn bộ escape lỗi (\=, \") trong regex split
+        var titleMatch = html.split(/<h1 class="page-title">([\s\S]*?)<\/h1>/);
         if (titleMatch && titleMatch[1]) {
             title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var yearMatch = html.split(/\<div class\=\"tag-link\"\>([\s\S]*?)<\/div>/);
+        var yearMatch = html.split(/<div class="tag-link">([\s\S]*?)<\/div>/);
         if (yearMatch && yearMatch[1]) {
             year = yearMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var desMatch = html.split(/\<div class\=\"video-info-item video-info-content\"\>([\s\S]*?)<\/div>/);
+        var desMatch = html.split(/<div class="video-info-item video-info-content">([\s\S]*?)<\/div>/);
         if (desMatch && desMatch[1]) {
             des = desMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var imgMatch = html.split(/\<div class\=\"module-item-pic\"\>[\s\S]*?<img[\s\S]*?src\=\"([\s\S]*?)\"/);
+        var imgMatch = html.split(/<div class="module-item-pic">[\s\S]*?<img[\s\S]*?src="([\s\S]*?)"/);
         if (imgMatch && imgMatch[1]) {
             img = imgMatch[1].replace(/<[^>]*>/g, '').trim();
         }
 
-        var urlMatch = html.split(/\<div class\=\"video-info-footer display\"\>[\s\S]*?<a[\s\S]*?href\=\"([\s\S]*?)\"/);
+        var urlMatch = html.split(/<div class="video-info-footer display">[\s\S]*?<a[\s\S]*?href="([\s\S]*?)"/);
         if (urlMatch && urlMatch[1]) {
             movieUrl = urlMatch[1].replace(/<[^>]*>/g, '').trim();
 
@@ -179,7 +182,7 @@ function parseMovieDetail(html) {
                     "url": movieUrl
                 });
             } else {
-                var pageMatch = html.split(/\<span class\=\"video-info-itemtitle\"\>Thời lượng：[\s\S]*?<div class\=\"video-info-item\"\>([\s\S]*?)\<\/div>/);
+                var pageMatch = html.split(/<span class="video-info-itemtitle">Thời lượng：[\s\S]*?<div class="video-info-item">([\s\S]*?)<\/div>/);
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
