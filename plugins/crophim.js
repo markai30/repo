@@ -150,89 +150,77 @@ function parseSearchResponse(html) {
 
 // ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
 function parseMovieDetail(html) {
-    try {
-        var parts = html.split(/window\s*\.?\s*_\s*movie\s*=\s*(.*)/i);
-        
-        if (!parts || parts.length < 2) {
-            return JSON.stringify({ "id": "error-split", "title": "Không tìm thấy vùng dữ liệu window._movie", "servers": [] });
-        }
-
-        var movieScriptMatch = parts[1];
-        var _movieObj;
-        eval("_movieObj = " + movieScriptMatch);
-
-        if (_movieObj) {
-            var title = _movieObj.title || "Chưa rõ tên phim";
-            var posterUrl = _movieObj.poster || _movieObj.thumb || "";
-            var movieSlug = _movieObj.slug || "";
-            
-            var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
-            var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
-            
-            var appServers = [];
-
-            if (Array.isArray(_movieObj.episodes)) {
-                for (var s = 0; s < _movieObj.episodes.length; s++) {
-                    var rawServer = _movieObj.episodes[s];
-                    var serverName = rawServer.server_name || rawServer.name || ("Server " + (s + 1));
-                    var episodes = [];
-
-                    if (Array.isArray(rawServer.server_data)) {
-                        for (var i = 0; i < rawServer.server_data.length; i++) {
-                            var ep = rawServer.server_data[i];
-                            
-                            var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
-                            var epSlug = ep.slug || String(i + 1);
-                            
-                            // LOGIC MỚI: Sinh ra URL trang xem phim hoàn chỉnh để App thực hiện Request GET tiếp theo
-                            // Kết quả: https://phimvn2y.com/dau-la-dai-luc-2-tuyet-the-duong-mon-tap-01.html
-                            var chapterPageUrl = "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
-
-                            episodes.push({
-                                "id": chapterPageUrl,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
-                                "slug": epSlug,
-                                "name": epName,
-                                "url": chapterPageUrl
-                            });
-                        }
-                    }
-
-                    if (episodes.length > 0) {
-                        appServers.push({
-                            "name": serverName.trim(),
-                            "episodes": episodes
-                        });
-                    }
-                }
+    // Nhiệm vụ của bạn ở đây: Viết Regex cào tên, mô tả, ảnh cover, và quan trọng nhất là DANH SÁCH TẬP PHIM.
+   var $title =  html.split(/\<h1 class\=\"page-title\"\>([\s\S]*?)<\/h1>/)
+    if($title){
+    	$title = $title[1].replace(/<[^>]*>/g, '').trim() || "Chưa rõ tên phim";
+	}
+	var $year =  html.split(/\<div class\=\"tag-link\"\>([\s\S]*?)<\/div>/)
+    if($year){
+    	$year= $year[1].replace(/<[^>]*>/g, '').trim() || "????";
+	}
+	var $des =  html.split(/\<div class\=\"video-info-item video-info-content\"\>([\s\S]*?)<\/div>/)
+    if($des){
+    	$des= $des[1].replace(/<[^>]*>/g, '').trim() || "????";
+	}
+	var $img =  html.split(/\<div class\=\"module-item-pic\"\>[\s\S]*?<img[\s\S]*?src\=\"([\s\S]*?)\"/)
+    if($img){
+    	$img= $img[1].replace(/<[^>]*>/g, '').trim() || "????";
+	}
+	var $url = html.split(/\<div class\=\"video-info-footer display\"\>[\s\S]*?<a[\s\S]*?href\=\"([\s\S]*?)\"/)
+    if($url){
+    	$url= $url[1].replace(/<[^>]*>/g, '').trim();
+    	var episodes = [];
+    	if($url.indexOf("full") > -1){
+    		episodes.push({
+                                "id": $url,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
+                                "slug": 1,
+                                "name": $title,
+                                "url": $url
+           });
+		}
+		else{
+			var $page = html.split(/\<span class\=\"video-info-itemtitle\"\>Thời lượng：[\s\S]*?<div class\=\"video-info-item\"\>([\s\S]*?)\<\/div>/);
+			if($page){
+				$page= $page[1].match(/\|\s(\d+)\s\|/)[1];
+				var $link = $url.split(/tap-(\d+)-/);
+				var $linkgoc = $link[0];
+				var $linkser = $link[2];
+				for(var $j = 1; $j < Number($page) + 1;$j++){
+					var $full = $linkgoc + "tap-" + $j + "-" + $linkser;
+					episodes.push({
+                                "id": $full,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
+                                "slug": $j,
+                                "name": "Tập " + $j,
+                                "url": $full
+          			 });	
+				}
+			}
+		}
+	}
+	
+	
+    return JSON.stringify({
+        id: $url,
+        title: $title,
+        posterUrl: $img,
+        backdropUrl: $img,
+        description: $des,
+        servers: [
+            {
+                name: "Server Vietsub", // Tên server phim
+                episodes: episodes
             }
-
-            if (appServers.length === 0) {
-                appServers.push({
-                    "name": "Nguồn Dự Phòng",
-                    "episodes": [{ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" }]
-                });
-            }
-
-            return JSON.stringify({
-                "id": movieSlug || title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                "title": title,
-                "posterUrl": posterUrl,
-                "backdropUrl": posterUrl,
-                "description": description,
-                "year": _movieObj.year || "2026",
-                "rating": 10,
-                "quality": "HD",
-                "servers": appServers 
-            });
-        }
-
-        return JSON.stringify({ "id": "error-object", "title": "Lỗi khởi tạo Object dữ liệu phim", "servers": [] });
-
-    } catch (error) {
-        return JSON.stringify({ "id": "error", "title": "Lỗi Thực Thi Hệ Thống: " + error.message, "servers": [] });
-    }
+        ],
+        quality: "HD",
+        year: $year,
+        rating: 8.0,
+        status: "Full",
+        duration: "???",
+        casts: "???",
+        director: "???"
+    });
 }
-
 /**
  * ĐÃ SỬA: Phân giải mã HTML của trang xem phim riêng biệt để bóc link .m3u8 cuối cùng ẩn bên trong
  */
