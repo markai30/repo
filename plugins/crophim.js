@@ -7,9 +7,9 @@ function getManifest() {
         "id": "crophim",          
         "name": "crophim",
         "description": "Phim Online",
-        "version": "1.1",             
-        "baseUrl": "https://coon.pro", 
-        "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
+        "version": "1.0",             
+        "baseUrl": "https://sportshots.pro", 
+        "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE"
     });
@@ -58,20 +58,31 @@ function getUrlList(slug, filtersJson) {
     
     var page = filters.page || 1;
     
-    if (slug === "motphim" || slug === "phim-le" || slug === "phim-ngan" || slug === "phim-bo") {
-        return "https://coon.pro/page/" + page + "/?s=&categories=" + slug;
+    // Bước 1: Xác định xem slug này thuộc nhóm Danh mục (categories) hay Thể loại (genres)
+    var pathType = "chuyen-muc"; // Mặc định là danh mục (phim-le, phim-bo, motphim...)
+    
+    if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
+        pathType = "the-loai"; // Nếu slug truyền vào là thể loại, đổi thành /the-loai/
     }
-    return "https://coon.pro/page/" + page + "/?s=&genres=" + slug;
+    
+    // Bước 2: Build URL dựa theo số trang (page)
+    if (page === 1) {
+        // Trang đầu tiên: https://sportshots.pro/chuyen-muc/phim-le/
+        return "https://sportshots.pro/" + pathType + "/" + slug + "/";
+    } else {
+        // Các trang sau: https://sportshots.pro/chuyen-muc/phim-le/page/3/
+        return "https://sportshots.pro/" + pathType + "/" + slug + "/page/" + page + "/";
+    }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://coon.pro/?s=" + encodeURIComponent(keyword);
+    return "https://sportshots.pro/?s=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://coon.pro/" + slug;
+    return "https://sportshots.pro/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -261,7 +272,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
-                "Referer": "https://coon.pro/", 
+                "Referer": "https://sportshots.pro/", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             },
             "subtitles": []
