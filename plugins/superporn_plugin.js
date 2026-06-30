@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.2",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -99,7 +99,7 @@ function parseListResponse(html) {
         var cleanHtml = html.replace(/<!--[\s\S]*?-->/g,""); // Xóa comment[cite: 5]
         
         // Bóc chính xác thẻ <a> và thẻ <img> nằm bên trong cụm class="thumb-video"
-        var regex = /div class="thumb-video[^>]*>[\s\S]*?href="([^"]+)"[\s\S]*?<img\s+alt="([^"]+)"[\s\S]*?<source srcset="(http[^"]+)"/gi;
+        var regex = /div class="thumb-video[^>]*>[\s\S]*?href="([^"]+)"[\s\S]*?<img\s+alt="([^"]+)"[\s\S]*?src="(http[^"]+)"/gi;
         var match;
         
         while ((match = regex.exec(cleanHtml)) !== null) {
@@ -120,21 +120,30 @@ function parseListResponse(html) {
 
         if (cleanHtml) {
             var currentMatch = cleanHtml.match(/btn-pagination--selected[^>]*>(\d+)<\/a>/i);
-            var maxMatch = cleanHtml.match(/<a[^>]*>(\d+)<\/a>\s*<\/li>\s*<li[^>]*class="[^"]*next/i);
-
+            //var maxMatch = cleanHtml.match(/<a[^>]*>(\d+)<\/a>\s*<\/li>\s*<li[^>]*class="[^"]*next/i);
+			var maxMatch = cleanHtml.match(/results__search--videos[\s\S]*?count-results[\s\S]*?(\d+)/i);
+			
             if (currentMatch && currentMatch[1]) {
                 currentPage = parseInt(currentMatch[1], 10);
             }
             if (maxMatch && maxMatch[1]) {
-                totalPages = parseInt(maxMatch[1], 10);
+                var totalPage = parseInt(maxMatch[1], 10);
+                var totalPages = Math.floor(totalPage / 56)
             }
+            else{
+            	var maxMatch = cleanHtml.match(/count-results[\s\S]*?(\d+)/i);
+            	if (maxMatch && maxMatch[1]) {
+                	var totalPage = parseInt(maxMatch[1], 10);
+                	var totalPages = Math.floor(totalPage / 56)
+          	  }	
+			}
         }
 
         return JSON.stringify({
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, 
-                "totalPages": 20,    
+                "totalPages": totalPages,    
                 "totalItems":  56 * totalPages,
                 "itemsPerPage": 56
             }
