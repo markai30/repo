@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "2.1",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -26,7 +26,10 @@ function getManifest() {
 */
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "japanese", "title": "Vú Bự", "type": "Horizontal" }
+        { "slug": "japanese", "title": "Gái Nhật", "type": "Horizontal" },
+        { "slug": "teen", "title": "Gái Trẻ", "type": "Horizontal" },
+        { "slug": "series/full-movies", "title": "Phim Dài", "type": "Horizontal" },
+        { "slug": "", "title": "Clip Mới", "type": "Grid" }
     ]);
 }
 
@@ -216,7 +219,7 @@ function parseDetailResponse(html) {
         var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
 
         var customJs = "alert('"+decodedUrl+"');var style = document.createElement('style');" +
-            "style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden}div#player {display: Block !important}';" +
+            "style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden;background:black}div#player {display: Block !important}';" +
             "document.head.appendChild(style);";
 
         return JSON.stringify({
