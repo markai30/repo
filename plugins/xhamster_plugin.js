@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "2.0",             
+        "version": "1.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
