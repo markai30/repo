@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.5",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -191,10 +191,14 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var streamUrl = "";
+        /*
         var rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
    	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
-      
+      */
+      var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
+    if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
+    
 		var customJs = `
 function initCustomVideoFix() {
   alert('${decodedUrl}');
@@ -241,7 +245,7 @@ if (document.readyState === 'loading') {
 `;
 
 return JSON.stringify({
-    url: decodedUrl,
+    url: lurl.replace("https://xhamster.com","https://greenxh.today"),
     headers: {
         "Referer": "https://greenxh.today",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
