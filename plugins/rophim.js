@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.5",             
+        "version": "1.0",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -53,9 +53,21 @@ function getFilters() {
 // =============================================================================
 
 function getUrlList(slug, filtersJson) {
-    var filters = JSON.parse(filtersJson || "{}");
-    var page = filters.page || 1;
-    return "https://phimvn2y.com/" + slug + "/?page=" + page;
+    try {
+        var filters = JSON.parse(filtersJson || "{}");
+        var page = filters.page || 1;
+        
+        // ĐÃ SỬA: Nếu là trang 1 thì giữ nguyên, từ trang 2 trở đi chuyển sang cấu trúc /page/X/ để tương thích hệ thống rewrite URL của web
+        if (page > 1) {
+            // Thử cấu trúc phổ biến nhất của các web phim hiện tại: danh-muc/page/2
+            return "https://phimvn2y.com/" + slug + "/?page=" + page;
+        }
+        
+        // Trang 1 mặc định
+        return "https://phimvn2y.com/" + slug;
+    } catch (e) {
+        return "https://phimvn2y.com/" + slug;
+    }
 }
 
 function getUrlSearch(keyword, filtersJson) {
