@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -83,36 +83,33 @@ function parseListResponse(html) {
         // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item
         var items = [];
         
-        // 1. Tách chuỗi HTML thành từng khối item nhỏ trước
-        // Cách này giúp cô lập lỗi: nếu 1 item bị thiếu ảnh, nó chỉ lỗi item đó chứ không nuốt luôn các item phía sau.
+        // 1. Tách chuỗi HTML thành từng khối item nhỏ
         var itemRegex = /thumb-list__item[\s\S]*?(?=(?:thumb-list__item|$))/gi;
         var itemMatches = html.match(itemRegex) || [];
 
         for (var i = 0; i < itemMatches.length; i++) {
             var itemHtml = itemMatches[i];
             
-            // Tìm các thuộc tính riêng lẻ trong khối item đó (không sợ bị sai thứ tự xuất hiện)
             var hrefMatch = itemHtml.match(/href="([^"]+)"/i);
             var labelMatch = itemHtml.match(/aria-label="([^"]+)"/i);
             var srcMatch = itemHtml.match(/img[\s\S]*?src="([^"]+)"/i);
 
-            if (hrefMatch && labelMatch && srcMatch) {
-                var limg = srcMatch[1].trim();
+            // Chỉ thêm vào danh sách nếu THỰC SỰ có ID (href) và Tiêu đề (label)
+            if (hrefMatch && labelMatch) {
+                var id = hrefMatch[1].trim();
+                var title = labelMatch[1].trim();
+                
+                // Kiểm tra xem có ảnh không, nếu không có thì dùng ảnh mặc định (Fallback)
+                var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
+
                 items.push({
-                    "id": hrefMatch[1].trim(),          
-                    "title": labelMatch[1].trim(), 
-                    "posterUrl": limg, 
-                    "backdropUrl": limg
+                    "id": id,          
+                    "title": title, 
+                    "posterUrl": posterUrl, 
+                    "backdropUrl": posterUrl
                 });
             }
-            else{
-            	items.push({
-                    "id": hrefMatch[1].trim(),          
-                    "title": labelMatch[1].trim(), 
-                    "posterUrl": "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg", 
-                    "backdropUrl": "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg"
-                });
-			}
+            // Nếu không có cả href và label thì bỏ qua item lỗi này, chạy tiếp item sau chứ không làm sập hàm
         }
 
         // 2. Tối ưu phần lấy Pagination
