@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -55,7 +55,7 @@ function getFilters() {
 function getUrlList(slug, filtersJson) {
     var filters = JSON.parse(filtersJson || "{}");
     var page = filters.page || 1;
-    return "https://phimvn2y.com/" + slug + "?page=" + page;
+    return "https://phimvn2y.com/" + slug + "/?page=" + page;
 }
 
 function getUrlSearch(keyword, filtersJson) {
