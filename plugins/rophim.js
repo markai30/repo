@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.0",             
+        "version": "1.4",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -124,7 +124,9 @@ function parseListResponse(html) {
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, // Đảm bảo trả về kiểu số (ví dụ: 1)
-                "totalPages": totalPages    // Đảm bảo trả về kiểu số (ví dụ: 10)
+                "totalPages": totalPages,    // Đảm bảo trả về kiểu số (ví dụ: 10)
+                "totalItems":  24 * totalPages,
+                "itemsPerPage": 24
             }
         });
     } catch (e) {
