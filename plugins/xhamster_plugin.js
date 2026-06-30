@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "2.0",             
+        "version": "1.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -105,6 +105,14 @@ function parseListResponse(html) {
                     "backdropUrl": limg
                 });
             }
+            else{
+            	items.push({
+                    "id": hrefMatch[1].trim(),          
+                    "title": labelMatch[1].trim(), 
+                    "posterUrl": "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg", 
+                    "backdropUrl": "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg"
+                });
+			}
         }
 
         // 2. Tối ưu phần lấy Pagination
@@ -182,35 +190,62 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var streamUrl = "";
-        
-        // ĐÃ SỬA: Xhamster giấu link luồng trong biến cấu hình JSON initials.
-        // Đoạn Regex dưới đây bóc tách toàn bộ Object cấu hình luồng phát của họ (hls hoặc mp4)
-        var scriptMatch = html.match(/window\.initials\s*=\s*(\{[\s\S]*?\});/i) || html.match(/id="initials-script"[^>]*>(\{[\s\S]*?\})<\/script>/i);
-        
-        if (scriptMatch && scriptMatch[1]) {
-            var jsonData = JSON.parse(scriptMatch[1]);
-            // Tìm kiếm sâu trong cấu trúc object để lấy link m3u8 hoặc mp4 chất lượng cao nhất
-            if (jsonData.videoModel && jsonData.videoModel.sources) {
-                var sources = jsonData.videoModel.sources;
-                streamUrl = sources.hls || sources.mp4 || "";
-            }
-        }
-        
-        // Dự phòng (Fallback) nếu hệ thống không parse được JSON, quét thô tìm file hls (.m3u8) công khai trong script
-        if (!streamUrl) {
-            var rawUrlMatch = html.match(/"(https?:\\?\/\\?\/[^"]+?\.m3u8[^"]*?)"/i);
-            if (rawUrlMatch && rawUrlMatch[1]) {
-                streamUrl = rawUrlMatch[1].replace(/\\/g, '');
-            }
-        }
+        var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
+   	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
 
-        return JSON.stringify({
-            url: streamUrl,
-            headers: {
-                "Referer": "https://greenxh.today/",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            }
-        });
+        var customJs = `
+function initCustomVideoFix() {
+
+  // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
+  const style = document.createElement('style');
+  style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden;background:black}div#player {display: block !important}';
+  document.head.appendChild(style);
+
+  // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
+  const checkInterval = setInterval(() => {
+    const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
+    const video = document.querySelector('video');
+
+    // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
+    if (theaterButton && video) {
+      clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
+
+      // Xử lý nút Cinema mode
+      const buttonText = theaterButton.innerText || theaterButton.textContent || "";
+      if (buttonText.toLowerCase().includes('cinema mode')) {
+        theaterButton.click();
+        console.log("Đã kích hoạt Cinema mode thành công!");
+      }
+
+      // Xử lý bật tiếng video
+      if (video.muted) {
+        video.muted = false;
+        console.log("Đã mở tiếng video thành công!");
+      }
+    }
+  }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
+
+  // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
+  setTimeout(() => clearInterval(checkInterval), 10000);
+}
+
+// Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+  initCustomVideoFix();
+}
+`;
+
+return JSON.stringify({
+    url: decodedUrl,
+    headers: {
+        "Referer": "https://greenxh.today",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Custom-Js": customJs.trim()
+    }
+});
     } catch (error) {
         return JSON.stringify({ url: "", headers: {} });
     }
