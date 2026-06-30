@@ -7,13 +7,13 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.2",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "exoplayer"
+        "playerType": "embed"
     });
 }
 /*
@@ -213,14 +213,16 @@ function parseDetailResponse(html) {
         if (rmatch && rmatch[1]) {
             streamUrl = rmatch[1];
         }	
+        var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
+
         var customJs = "var style = document.createElement('style');" +
             "style.innerHTML = '#playback { display: none !important; }';" +
-            "document.head.appendChild(style);";
+            "document.head.appendChild(style);alert('"+decodedUrl+"')";
 
         return JSON.stringify({
-            url: streamUrl,
+            url: decodedUrl,
             headers: {
-                "Referer": "https://www.superporn.com",
+                "Referer": "https://clbphimxua.com/",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Custom-Js": customJs
             }
