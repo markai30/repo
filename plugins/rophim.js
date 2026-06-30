@@ -17,13 +17,13 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "phim-le", "title": "Phim Lẻ Mới", "type": "Grid" },
-        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Grid" },
-        { "slug": "phim-18", "title": "Phim 18+", "type": "Grid" },
-        { "slug": "phim-hai", "title": "Phim Hài", "type": "Grid" },
-        { "slug": "kinh-di", "title": "Phim Kinh Dị", "type": "Grid" },
-        { "slug": "hoat-hinh", "title": "Phim Hoạt Hình", "type": "Grid" },
-        { "slug": "hanh-dong", "title": "Phim Hành Động", "type": "Grid" }
+        { "slug": "phim-le", "title": "Phim Lẻ Mới", "type": "Horizontal" },
+        { "slug": "phim-bo", "title": "Phim Bộ Mới", "type": "Horizontal" },
+        { "slug": "phim-18", "title": "Phim 18+", "type": "Horizontal" },
+        { "slug": "phim-hai", "title": "Phim Hài", "type": "Horizontal" },
+        { "slug": "hoat-hinh", "title": "Phim Hoạt Hình", "type": "Horizontal" },
+        { "slug": "hanh-dong", "title": "Phim Hành Động", "type": "Horizontal" },
+        { "slug": "kinh-di", "title": "Phim Kinh Dị", "type": "Grid" }
     ]);
 }
 
