@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.1",             
+        "version": "1.2",             
         "baseUrl": "https://sportshots.pro",
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -208,15 +208,20 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
-		var getlink = html.match(/id="streaming-sv"[\s\S]*?data-link="([\s\S]*?)"/i);
-		if(getlink && getlink[1]){
-			videoUrl = getlink[1];
-		}
-		alert(decodeURIComponent(videoUrl));
+        var getlink = html.match(/id="streaming-sv"[\s\S]*?data-link="([\s\S]*?)"/i);
+        
+        if (getlink && getlink[1]) {
+            videoUrl = getlink[1];
+        }
+        
+        // ĐÃ SỬA: Xóa bỏ hoàn toàn hàm alert() gây treo App
+        var decodedUrl = videoUrl ? decodeURIComponent(videoUrl) : "";
+
         return JSON.stringify({
-            "url": decodeURIComponent(videoUrl), 
+            "url": decodedUrl, 
             "headers": {
-                "Referer": "https://sportshots.pro/", 
+                // ĐÃ SỬA: Chuyển sang Referer của hệ thống CDN phát video để tránh lỗi chặn Hotlink
+                "Referer": "https://cdn.phimhayok.net/", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             },
             "subtitles": []
