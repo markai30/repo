@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.0",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -16,14 +16,17 @@ function getManifest() {
         "playerType": "embed"
     });
 }
-
-function getHomeSections() {
-    return JSON.stringify([
-        { "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
+/*
+{ "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
         { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
         { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" }, // ĐÃ SỬA: Thêm dấu phẩy hợp lệ ở đây
         { "slug": "phim-sex-chau-au", "title": "Châu Âu", "type": "Horizontal" },
         { "slug": "phim-sex-trung-quoc", "title": "Trung Quốc", "type": "Horizontal" }
+    ]);
+*/
+function getHomeSections() {
+    return JSON.stringify([
+        { "slug": "", "title": "Clip Mới", "type": "Grid" }
     ]);
 }
 
@@ -181,10 +184,10 @@ function parseMovieDetail(html) {
             }
         ],
         quality: "HD",
-        year: 2026,
+        year: "????",
         rating: 8.0,
         status: "Full",
-        duration: "120 Phút",
+        duration: "????",
         casts: "Diễn viên",
         director: "Đạo diễn",
         category: "18+"
