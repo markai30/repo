@@ -8,11 +8,12 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.2",             
+        "version": "1.5",             
         "baseUrl": "https://sportshots.pro",
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
-        "type": "MOVIE"
+        "type": "MOVIE",
+        "playerType": "embed"
     });
 }
 
@@ -221,7 +222,7 @@ function parseDetailResponse(html) {
             "url": decodedUrl, 
             "headers": {
                 // ĐÃ SỬA: Chuyển sang Referer của hệ thống CDN phát video để tránh lỗi chặn Hotlink
-                "Referer": "https://cdn.phimhayok.net/", 
+                "Referer": "https://sportshots.pro", 
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             },
             "subtitles": []
