@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.5",             
+        "version": "1.7",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -37,7 +37,8 @@ function getPrimaryCategories() {
         { "slug": "phim-sex-vung-trom", "name": "Vụng Trộm"},
         { "slug": "phim-sex-chau-au", "name": "Châu Âu"},
         { "slug": "phim-sex-trung-quoc", "name": "Trung Quốc"},
-        { "slug": "search/?do=search&qh=L%E1%BB%97+Nh%E1%BB%8B", "name": "Lỗ Nhị"}
+        { "slug": "search/?do=search&qh=L%E1%BB%97+Nh%E1%BB%8B", "name": "Lỗ Nhị"},
+        { "slug": "search/?do=search&qh=Da+%C4%91en", "name": "Da Đen"}
     ]);
 }
 
