@@ -204,25 +204,14 @@ function parseMovieDetail(html) {
         return JSON.stringify({ "id": "error", "title": "Lỗi tải dữ liệu", "servers": [] });
     }
 }
-
+//  <a onclick="chooseStreamingServer(this)" data-type="m3u8" id="streaming-sv" data-id="1" data-link="https://cdn.phimhayok.net/filmhayok/hls/6a3a9626d63a92f33ffa0063/20260623142024/playlist.m3u8" class="streaming-server tag-link" style="background: #232328;color: #FFF">
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
-
-        if (html && typeof html === 'string') {
-            var m3u8Match = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
-            if (m3u8Match) {
-                videoUrl = m3u8Match[1].trim();
-            } else {
-                var embedMatch = html.match(/(https?:\/\/player[^"']+\/player\/\?url=[^"']+\/)/i);
-                if (embedMatch) {
-                    videoUrl = decodeURIComponent(embedMatch[1].split('url=')[1]);
-                } else if (html.indexOf("http://") === 0 || html.indexOf("https://") === 0) {
-                    videoUrl = html.trim();
-                }
-            }
-        }
-
+		var getlink = html.match(/id="streaming-sv"[\s\S]*?data-link="([\s\S]*?)"/i);
+		if(getlink && getlink[1]){
+			videoUrl = getlink[1];
+		}
         return JSON.stringify({
             "url": videoUrl, 
             "headers": {
