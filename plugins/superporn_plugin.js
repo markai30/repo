@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.0",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -174,13 +174,18 @@ function parseMovieDetail(html) {
 
     rmatch = html.match(/meta\s+property="og:description"\s+content="([\s\S]*?)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
+    rmatch = html.match(/id="superporn_player_html5_api[\s\S]*?source\ssrc="([\s\S]*?)"/i);
+    var streamUrl = "None";
+        if (rmatch && rmatch[1]) {
+            streamUrl = rmatch[1];
+        }	
      
     return JSON.stringify({
         id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes,
+        description: ldes + "\r\n" + streamUrl,
         servers: [
             {
                 name: "Full",
