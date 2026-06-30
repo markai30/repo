@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.5",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -62,11 +62,11 @@ function getUrlList(slug, filtersJson) {
         var page = filters.page || 1;
         
         if (page > 1) {
-            return "https://superporn.com/" + slug + "/" + page;
+            return "https://www.superporn.com/" + slug + "/" + page;
         }
-        return "https://superporn.com/" + slug;
+        return "https://www.superporn.com/" + slug;
     } catch (e) {
-        return "https://superporn.com/" + slug;
+        return "https://www.superporn.com/" + slug;
     }
 }
 
