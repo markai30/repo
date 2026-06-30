@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "SexMup",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
