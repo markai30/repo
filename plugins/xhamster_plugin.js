@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "2.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -158,13 +158,17 @@ function parseMovieDetail(html) {
 
     rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
+    
+     var rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
+   	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
      
     return JSON.stringify({
         id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes,
+        description: ldes + "\r\n" + decodedUrl,
         servers: [
             {
                 name: "Xhamster Stream",
