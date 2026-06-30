@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "SexMup",
         "description": "XXX Hay",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -150,21 +150,41 @@ function parseSearchResponse(html) {
 // ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
 function parseMovieDetail(html) {
     // Nhiệm vụ của bạn ở đây: Viết Regex cào tên, mô tả, ảnh cover, và quan trọng nhất là DANH SÁCH TẬP PHIM.
+    // Lấy url video <link rel="canonical" href="https://sexmupxinh.net/phim/co-em-ve-mat-dam-dang-lam-tinh-cuc-phe/">
+    var rmatch = html.match(/link\srel="canonical"[\s\S]*?href="([\s\S]*?)"/i) ;
+    if (rmatch && rmatch[1]) {
+           var lurl = rmatch[1];
+     }
+     // Lấy img video <meta property="og:image" content="https://sexmupxinh.net/file/cover/co-em-ve-mat-dam-dang-lam-tinh-cuc-phe.jpg">
+    var rmatch = html.match(/meta\s+property="og:image"\s+content="([\s\S]*?)"/i) ;
+    if (rmatch && rmatch[1]) {
+           var limg = rmatch[1];
+     }
+    // lấy tên phim <meta property="og:title" content="Cô em vẻ mặt dâm đãng làm tình cực phê">
+    var rmatch = html.match(/meta\s+property="og:title"\s+content="([\s\S]*?)"/i) ;
+    if (rmatch && rmatch[1]) {
+           var lname = rmatch[1];
+     }
+     // Lấy nội dung phim <div class="content">
+     var rmatch = html.match(/<div\s+class="content">([\s\S]*?)<\/div>/i) ;
+    if (rmatch && rmatch[1]) {
+           var ldes = rmatch[1];
+     }
+     
     return JSON.stringify({
-        id: "slug-phim",
-        title: "Tên phim cào được",
-        posterUrl: "https://.../anh.jpg",
-        backdropUrl: "https://.../anh-nen.jpg",
-        description: "Mô tả bộ phim cào được từ thẻ <p>...",
+        id: lurl,
+        title: lname,
+        posterUrl: limg,
+        backdropUrl: limg,
+        description: ldes,
         servers: [
             {
-                name: "Server Vietsub", // Tên server phim
+                name: "Full", // Tên server phim
                 episodes: [
                     // ⚠️ LƯU Ý LỚN: `id` của tập phim có thể là link trực tiếp (.mp4/.m3u8), hoặc là một slug phụ.
                     // Nếu là slug phụ (ví dụ: 'tap-1'), khi người dùng bấm xem, App sẽ lại gọi hàm getUrlDetail('tap-1') 
                     // để lấy HTML tập 1 rồi ném vào hàm parseDetailResponse() dưới đây.
-                    { id: "tap-1-url-hoac-slug", name: "Tập 1", slug: "tap-1" },
-                    { id: "tap-2-url-hoac-slug", name: "Tập 2", slug: "tap-2" }
+                    { id: lurl, name: "Full", slug: "" }
                 ]
             }
         ],
@@ -182,22 +202,32 @@ function parseMovieDetail(html) {
 /**
  * Hàm lấy LINK VIDEO CUỐI CÙNG (Trọng yếu nhất)
  * Được gọi khi người dùng ấn nút "PHÁT VIDEO" (Play)
- */
+ */ 
+ 
+ //
 function parseDetailResponse(html) {
-    // Bạn cần dùng Regex để tìm ra link .m3u8 hoặc .mp4 ẩn trong mã HTML/Script của trang nguồn.
-    return JSON.stringify({
-        url: "https://cdn.example.com/video.m3u8", // Link stream video cuối cùng tìm được
-        headers: {
-            "Referer": "https://domain-phim-cua-ban.com" // Rất quan trọng! Nhiều web chống xem lén bằng cách check Referer. Điền domain trang nguồn vào đây để "qua mặt" chống hotlink.
-        },
-        subtitles: [] // Nếu trang nguồn có sub tách rời (.srt/.vtt), cào link bỏ vào đây
-        
-        // CÁC THAM SỐ NÂNG CAO (Bỏ cmt nếu dùng):
-        // isEmbed: false,     // Đổi thành true nếu link `url` ở trên chưa phải link video, mà là một link chứa iframe/ajax cần xử lý tiếp ở hàm dưới.
-        // postBody: "",       // Nếu cần gửi request dạng POST để lấy link thì điền body vào đây (ví dụ: "id=123&token=xyz")
-        // mimeType: "application/x-mpegURL" // Ép kiểu trình phát (Dùng khi link video không có đuôi .m3u8 rõ ràng)
-    });
+    try {
+    	var rmatch = html.match(/<div\s+class="video-player mobile"[\s\S]*?iframe\s+src="([\s\S]*?)"/i) ;
+   	 if (rmatch && rmatch[1]) {
+           var streamUrl  = rmatch[1];
+    	 }	
+        var customJs = "var style = document.createElement('style');" +
+            "style.innerHTML = '#playback { display: none !important; }';" +
+            "document.head.appendChild(style);";
+
+        return JSON.stringify({
+            url: streamUrl,
+            headers: {
+                "Referer": "https://clbphimxua.com/",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Custom-Js": customJs
+            }
+        });
+    } catch (error) {
+        return JSON.stringify({ url: "", headers: {} });
+    }
 }
+
 
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
