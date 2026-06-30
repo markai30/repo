@@ -2,8 +2,8 @@
     "version": 1,
     "plugins": [
         {
-            "id": "SexMup",
-            "name": "SexMup",
+            "id": "sexmup",
+            "name": "sexmup",
             "version": "1.0",
             "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/sexmup_plugin.js",
             "iconUrl": "https://sexmupxinh.net/static/img/logo.png"
