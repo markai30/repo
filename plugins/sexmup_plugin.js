@@ -5,9 +5,9 @@
 function getManifest() {
     return JSON.stringify({
         "id": "sexmup",          
-        "name": "SexMup",
+        "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
