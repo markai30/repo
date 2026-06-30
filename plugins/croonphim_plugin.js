@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "2.0",             
+        "version": "2.1",             
         "baseUrl": "https://sportshots.pro",
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -212,6 +212,7 @@ function parseDetailResponse(html) {
 		if(getlink && getlink[1]){
 			videoUrl = getlink[1];
 		}
+		alert(decodeURIComponent(videoUrl));
         return JSON.stringify({
             "url": decodeURIComponent(videoUrl), 
             "headers": {
