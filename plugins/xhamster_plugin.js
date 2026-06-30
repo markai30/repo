@@ -7,13 +7,13 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "2.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embed"
+        "playerType": "auto"
     });
 }
 
@@ -183,11 +183,11 @@ function parseMovieDetail(html) {
         category: "18+"
     });
 }
-
+//<link rel="preload" href="https://video3.cdnsolutions.media/key=kePlMtN+ADhubUR5+oDV3A,end=1782846000/data=2405:4802:918e:9690:213f:c9b0:ee12:58e-dvp/media=hls4/multi=256x144:144p:,426x240:240p:,854x480:480p:,1280x720:720p:,1920x1080:1080p:/029/485/972/_TPL_.av1.mp4.m3u8" as="fetch" crossorigin="true">
 function parseDetailResponse(html) {
     try {
         var streamUrl = "";
-        var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
+        var rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
    	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
 
