@@ -7,8 +7,8 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.9",             
-        "baseUrl": "https://xhamster.com",
+        "version": "2.0",             
+        "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
         "isAdult": true,
@@ -52,22 +52,22 @@ function getUrlList(slug, filtersJson) {
         var page = filters.page || 1;
         
         if (page > 1) {
-            return "https://xhamster.com/" + slug + "/" + page;
+            return "https://greenxh.today/" + slug + "/" + page;
         }
-        return "https://xhamster.com/" + slug;
+        return "https://greenxh.today/" + slug;
     } catch (e) {
-        return "https://xhamster.com/" + slug;
+        return "https://greenxh.today/" + slug;
     }
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://xhamster.com/search/" + encodeURIComponent(keyword);
+    return "https://greenxh.today/search/" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://xhamster.com/" + slug;
+    return "https://greenxh.today/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -206,7 +206,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({
             url: streamUrl,
             headers: {
-                "Referer": "https://xhamster.com/",
+                "Referer": "https://greenxh.today/",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             }
         });
