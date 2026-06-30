@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.0",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -95,16 +95,21 @@ function parseListResponse(html) {
     try {
         var items = [];
         // Regex mới: chấp nhận class có thể chứa thêm ký tự khác (như video-image lazyload)
-var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"[\s\S]*?class="video-image[^"]*"[\s\S]*?src="([^"]+)"/g;
+var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"[\s\S]*?class="video-image[^"]*"[\s\S]*?src="([^"]+)"[\s\S]*?data-src="([^"]+)"/g;
         var match;
         
         while ((match = regex.exec(html)) !== null) {
-            var cleanThumb = match[3].replace(/&amp;/g, '&'); 
+            var lurl1 = match[3].replace(/&amp;/g, '&'); 
+            var lurl2 = match[4].replace(/&amp;/g, '&'); 
+            var imageRegex = /\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i;
+			var limg = (lurl1 && imageRegex.test(lurl1)) ? lurl1 : 
+           (lurl2 && imageRegex.test(lurl2)) ? lurl2 : "https://sexmupxinh.net/file/cover/ong-chu-dam-duc-lua-em-nu-sinh-vao-cuoc-may-mua-tao-bao.jpg";
+           
             items.push({
                 "id": match[2],          
                 "title": match[1].trim(), 
-                "posterUrl": cleanThumb,
-                "backdropUrl": cleanThumb
+                "posterUrl": limg,
+                "backdropUrl": limg
             });
         }
 
