@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.5",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -222,7 +222,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({
             url: decodedUrl,
             headers: {
-                "Referer": "https://clbphimxua.com/",
+                "Referer": "https://www.superporn.com",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Custom-Js": customJs
             }
