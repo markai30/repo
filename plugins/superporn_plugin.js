@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.2",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -98,16 +98,17 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        // ĐÃ SỬA: Chỉ bóc cụm nội dung bên trong thẻ <img> để không bị bẫy mất item không có data-src
-        var html = html.replace(/<!--[\s\S]*?-->/g,"");
-        var regex = /class="thumb-video[\s\S]*?href="([\s\S]*?)"[\s\S]*?src="([\s\S]*?)"[\s\S]*?thumb-video__description[\s\S]*?>([\s\S]*?)<\/a>/g;
-        var match;
-        var imageRegex = /\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i;
+        var cleanHtml = html.replace(/<!--[\s\S]*?-->/g,""); // Xóa comment[cite: 5]
         
-        while ((match = regex.exec(html)) !== null) {
-            var title = match[3].replace(/\s+/g, ' ').trim();
-            var id = match[1];
-            var limg = match[2];
+        // Bóc chính xác thẻ <a> và thẻ <img> nằm bên trong cụm class="thumb-video"
+        var regex = /div class="thumb-video[^>]*>[\s\S]*?href="([^"]+)"[\s\S]*?<img\s+alt="([^"]+)"[\s\S]*?<source srcset="(http[^"]+)"/gi;
+        var match;
+        
+        while ((match = regex.exec(cleanHtml)) !== null) {
+            var id = match[1].trim();
+            var title = match[2].trim();
+            var limg = match[3].trim();
+            
             items.push({
                 "id": id,          
                 "title": title, 
@@ -119,12 +120,9 @@ function parseListResponse(html) {
         var currentPage = 1;
         var totalPages = 1;
 
-        if (html) {
-        	//<li class="pagination_item" itemprop="url"><a class="btn-pagination btn-pagination--selected" itemprop="name">1</a>>/li>
-        // <li class="pagination_item pagination_item--next" itemprop="url"><a class="btn-pagination" itemprop="name" href="/search/2?q=black"><span>Next &gt;</span></a>
-        
-            var currentMatch = html.match(/btn-pagination--selected[\s\S]*?>([\s\S]*?)<\/a>/i);
-            var maxMatch = html.match(/<a[^>]*>(\d+)<\/a>\s*<\/li>\s*<li[^>]*class="[^"]*next/i)
+        if (cleanHtml) {
+            var currentMatch = cleanHtml.match(/btn-pagination--selected[^>]*>(\d+)<\/a>/i);
+            var maxMatch = cleanHtml.match(/<a[^>]*>(\d+)<\/a>\s*<\/li>\s*<li[^>]*class="[^"]*next/i);
 
             if (currentMatch && currentMatch[1]) {
                 currentPage = parseInt(currentMatch[1], 10);
@@ -138,7 +136,7 @@ function parseListResponse(html) {
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, 
-                "totalPages": totalPages,    
+                "totalPages": 20,    
                 "totalItems":  56 * totalPages,
                 "itemsPerPage": 56
             }
