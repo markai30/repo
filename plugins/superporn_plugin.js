@@ -7,13 +7,13 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.1",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "auto"
+        "playerType": "exoplayer"
     });
 }
 /*
@@ -162,7 +162,7 @@ function parseMovieDetail(html) {
     var limg = "";
     var lname = "Đang cập nhật...";
     var ldes = "Không có mô tả.";
-
+	// <link rel="canonical" href="https://www.superporn.com/video/japanese-and-german-girls-massage-each-other-s-giant-boobs">
     var rmatch = html.match(/link\srel="canonical"[\s\S]*?href="([\s\S]*?)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
 
@@ -172,7 +172,7 @@ function parseMovieDetail(html) {
     rmatch = html.match(/meta\s+property="og:title"\s+content="([\s\S]*?)"/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-    rmatch = html.match(/<div\s+class="content">([\s\S]*?)<\/div>/i);
+    rmatch = html.match(/meta\s+property="og:description"\s+content="([\s\S]*?)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
      
     return JSON.stringify({
@@ -199,11 +199,12 @@ function parseMovieDetail(html) {
         category: "18+"
     });
 }
+//<video id="superporn_player_html5_api" playsinline="playsinline" webkit-playsinline="" preload="none" class="vjs-tech" poster="https://img.superporn.com/videos/356/3560/previews/previews_0012_custom_1654675518.0576.jpg" data-stats-video-id="3560" data-sprites-url="https://img.superporn.com/videos/356/3560/sprites/sprite_[index].jpg" data-video-duration="1146" data-video-preview="https://img.superporn.com/videos/356/3560/previews/previews_0012_custom_1654675518.0576.jpg" tabindex="-1"> <source src="https://cdnst.superporn.com/videos/356/3560/mp4/08742e514343b8c354693ddf5c593d76521831d9e6c586f29da7106393d5bba4.mp4?secure=lptcAIZwqd7MiKvVipxKeg%3D%3D%2C1782908733" type="video/mp4"> </video>
 
 function parseDetailResponse(html) {
     try {
         var streamUrl = "";
-        var rmatch = html.match(/<div\s+class="video-player mobile"[\s\S]*?iframe\s+src="([\s\S]*?)"/i);
+        var rmatch = html.match(/id="superporn_player_html5_api[\s\S]*?source\ssrc="([\s\S]*?)"/i);
         if (rmatch && rmatch[1]) {
             streamUrl = rmatch[1];
         }	
@@ -214,7 +215,7 @@ function parseDetailResponse(html) {
         return JSON.stringify({
             url: streamUrl,
             headers: {
-                "Referer": "https://clbphimxua.com/",
+                "Referer": "https://www.superporn.com",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Custom-Js": customJs
             }
