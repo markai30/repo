@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "2.1",             
+        "version": "3.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -148,7 +148,7 @@ function parseMovieDetail(html) {
     var ldes = "Không có mô tả.";
 
     var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
-    if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
+    if (rmatch && rmatch[1]) { lurl = rmatch[1].replace("https://xhamster.com","https://greenxh.today"); }
 
     rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
@@ -161,19 +161,19 @@ function parseMovieDetail(html) {
     
      var rmatch = html.match(/rel="preload"\shref="([\s\S]*?m3u8)"/i);
    	 if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
-        var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
+        
      
     return JSON.stringify({
-        id: lurl.replace("https://xhamster.com","https://greenxh.today"),
+        id: lurl,
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n" + decodedUrl,
+        description: ldes + "\r\n" + streamUrl + "\r\n" +,
         servers: [
             {
                 name: "Xhamster Stream",
                 episodes: [
-                    { id: lurl, name: "Full Video", slug: "full" }
+                    { id: lurl, name: streamUrl, slug: "full" }
                 ]
             }
         ],
