@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "2.0",             
+        "version": "1.1",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -82,24 +82,22 @@ function parseListResponse(html) {
     try {
         var items = [];
         // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item
-        var regex = /class="video-thumb__image-container[\s\S]*?data-role="thumb-link"[\s\S]*?href="([^"]+)"[\s\S]*?data-previewvideo="([^"]+)"[^>]*aria-label="([^"]+)"([^>]*>)/gi;
+        var regex = /thumb-list__item[\s\S]*?href="([\s\S]*?)"[\s\S]*?aria-label="([\s\S]*?)"[\s\S]*?img[\s\S]*?src="([\s\S]*?)"[\s\S]*?alt="([\s\S]*?)"/gi;
         var match;
         
         while ((match = regex.exec(html)) !== null) {
-            var id = match[1].trim();
-            var title = match[3].trim();
-            
-            // ĐÃ SỬA: Dùng cơ chế quét phụ vùng an toàn để nhặt chính xác src ảnh
-            var remainingHtml = html.substring(match.index, match.index + 1200);
-            var imgMatch = remainingHtml.match(/<img[^>]*?src="([^"]+)"/i);
-            var limg = imgMatch ? imgMatch[1] : "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500";
-
-            items.push({
-                "id": id,          
-                "title": title, 
-                "posterUrl": limg, 
-                "backdropUrl": limg
-            });
+        	var id = match[1].trim();
+            var title = match[2].trim();
+        	if(match[3]){
+        		var limg = match[3];
+        		items.push({
+               	 "id": id,          
+               	 "title": title, 
+               	 "posterUrl": limg, 
+               	 "backdropUrl": limg
+            	});
+        		
+        	}
         }
 
         var currentPage = 1;
@@ -121,7 +119,7 @@ function parseListResponse(html) {
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, 
-                "totalPages": totalPages,    
+                "totalPages": 10,    
                 "totalItems":  46 * totalPages,
                 "itemsPerPage": 46
             }
