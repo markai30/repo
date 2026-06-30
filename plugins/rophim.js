@@ -7,7 +7,7 @@ function getManifest() {
         "id": "rophim",          
         "name": "RophimFake",
         "description": "Nguồn xem phim PhimVN2Y ổn định",
-        "version": "1.4",             
+        "version": "1.3",             
         "baseUrl": "https://phimvn2y.com",
         "iconUrl": "https://raw.githubusercontent.com/youngbi/repo/main/plugins/kkphim.png", 
         "isEnabled": true,
@@ -104,27 +104,33 @@ function parseListResponse(html) {
             });
         }
 
-        // ĐÃ SỬA: Khởi tạo mặc định là kiểu Số (Number)
+        // --- KHU VỰC SỬA LẠI PHÂN TRANG CHUẨN ---
         var currentPage = 1;
         var totalPages = 1;
 
-        var pageMatch = html.match(/<input class="form-control v-form-control" required="" max="(\d+)" type="number" value="(\d+)"/);
-        
-        if (pageMatch) {
-            // ĐÃ SỬA: Ép kiểu dữ liệu từ String sang Number bằng parseInt để App thực hiện phép toán +1 sang trang chính xác
-            if (pageMatch[2]) {
-                currentPage = parseInt(pageMatch[2], 10);
+        if (html) {
+            // 1. Tìm giá trị đang hiển thị (Trang hiện tại) trong thẻ input v-form-control
+            var currentMatch = html.match(/class="[^"]*v-form-control[^"]*"[^>]*value="(\d+)"/i) 
+                            || html.match(/value="(\d+)"[^>]*class="[^"]*v-form-control[^"]*"/i);
+            
+            // 2. Tìm giá trị max (Tổng số trang) trong thẻ input v-form-control
+            var maxMatch = html.match(/class="[^"]*v-form-control[^"]*"[^>]*max="(\d+)"/i)
+                        || html.match(/max="(\d+)"[^>]*class="[^"]*v-form-control[^"]*"/i);
+
+            if (currentMatch && currentMatch[1]) {
+                currentPage = parseInt(currentMatch[1], 10);
             }
-            if (pageMatch[1]) {
-                totalPages = parseInt(pageMatch[1], 10);
+            if (maxMatch && maxMatch[1]) {
+                totalPages = parseInt(maxMatch[1], 10);
             }
         }
+        // ----------------------------------------
 
         return JSON.stringify({
             "items": items,
             "pagination": { 
-                "currentPage": currentPage, // Đảm bảo trả về kiểu số (ví dụ: 1)
-                "totalPages": totalPages,    // Đảm bảo trả về kiểu số (ví dụ: 10)
+                "currentPage": currentPage, 
+                "totalPages": totalPages,    
                 "totalItems":  24 * totalPages,
                 "itemsPerPage": 24
             }
