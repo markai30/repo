@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.3",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -16,14 +16,14 @@ function getManifest() {
         "playerType": "embed"
     });
 }
-// 
+
 function getHomeSections() {
     return JSON.stringify([
         { "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
         { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
-        { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" }
+        { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" }, // ĐÃ SỬA: Thêm dấu phẩy hợp lệ ở đây
         { "slug": "phim-sex-chau-au", "title": "Châu Âu", "type": "Horizontal" },
-       { "slug": "phim-sex-trung-quoc", "title": "Trung Quốc", "type": "Horizontal" }
+        { "slug": "phim-sex-trung-quoc", "title": "Trung Quốc", "type": "Horizontal" }
     ]);
 }
 
@@ -38,7 +38,6 @@ function getPrimaryCategories() {
     ]);
 }
 
-// ĐÃ SỬA: Đổi tên từ getFilterConfig thành getFilters theo chuẩn kkphim/ophim
 function getFilters() {
     return JSON.stringify({
         "sort": [
@@ -56,21 +55,15 @@ function getUrlList(slug, filtersJson) {
         var filters = JSON.parse(filtersJson || "{}");
         var page = filters.page || 1;
         
-        // ĐÃ SỬA: Nếu là trang 1 thì giữ nguyên, từ trang 2 trở đi chuyển sang cấu trúc /page/X/ để tương thích hệ thống rewrite URL của web https://sexmupxinh.net/phim-sex-hiep-dam/page/2/
         if (page > 1) {
-            // Thử cấu trúc phổ biến nhất của các web phim hiện tại: danh-muc/page/2
             return "https://sexmupxinh.net/" + slug + "/page/" + page + "/";
         }
-        
-        // Trang 1 mặc định
         return "https://sexmupxinh.net/" + slug;
     } catch (e) {
         return "https://sexmupxinh.net/" + slug;
     }
 }
 
-
-//https://sexmupxinh.net/search/?do=search&qh=Gay
 function getUrlSearch(keyword, filtersJson) {
     return "https://sexmupxinh.net/search/?do=search&qh=" + encodeURIComponent(keyword);
 }
@@ -86,45 +79,48 @@ function getUrlCountries() { return ""; }
 function getUrlYears() { return ""; }
 
 // =============================================================================
-// PARSERS (Đã chuẩn hóa chỉ nhận duy nhất 1 tham số html)
+// PARSERS
 // =============================================================================
-// <li class="video-list"><a title="Chuyện tình nóng bỏng nơi công sở với đồng nghiệp ngực to" href="https://sexmupxinh.net/phim/chuyen-tinh-nong-bong-noi-cong-so-voi-dong-nghiep-nguc-to/"><img class="video-image" src="https://sexmupxinh.net/file/cover/chuyen-tinh-nong-bong-noi-cong-so-voi-dong-nghiep-nguc-to.jpg" loading="eager" fetchpriority="high" width="320" height="180" decoding="async" alt="Chuyện tình nóng bỏng nơi công sở với đồng nghiệp ngực to"></a><div class="video-name"><a title="Chuyện tình nóng bỏng nơi công sở với đồng nghiệp ngực to" href="https://sexmupxinh.net/phim/chuyen-tinh-nong-bong-noi-cong-so-voi-dong-nghiep-nguc-to/">Chuyện tình nóng bỏng nơi công sở với đồng nghiệp ngực to</a></div></li>
 
 function parseListResponse(html) {
     try {
         var items = [];
-        // Regex mới: chấp nhận class có thể chứa thêm ký tự khác (như video-image lazyload)
-var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"[\s\S]*?class="video-image[^"]*"[\s\S]*?src="([^"]+)"[\s\S]*?data-src="([^"]+)"/g;
+        // ĐÃ SỬA: Chỉ bóc cụm nội dung bên trong thẻ <img> để không bị bẫy mất item không có data-src
+        var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"[\s\S]*?<img[^>]*class="video-image[^"]*"([^>]*)/g;
         var match;
+        var imageRegex = /\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i;
         
         while ((match = regex.exec(html)) !== null) {
-            var lurl1 = match[3].replace(/&amp;/g, '&'); 
-            var lurl2 = match[4].replace(/&amp;/g, '&'); 
-            var imageRegex = /\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i;
-			var limg = (lurl1 && imageRegex.test(lurl1)) ? lurl1 : 
-           (lurl2 && imageRegex.test(lurl2)) ? lurl2 : "https://sexmupxinh.net/file/cover/ong-chu-dam-duc-lua-em-nu-sinh-vao-cuoc-may-mua-tao-bao.jpg";
+            var title = match[1].trim();
+            var id = match[2];
+            var imgTagContent = match[3];
+
+            // Tìm thuộc tính src và data-src riêng lẻ
+            var srcMatch = imgTagContent.match(/src="([^"]+)"/i);
+            var dataSrcMatch = imgTagContent.match(/data-src="([^"]+)"/i);
+
+            var lurl1 = srcMatch ? srcMatch[1].replace(/&amp;/g, '&') : "";
+            var lurl2 = dataSrcMatch ? dataSrcMatch[1].replace(/&amp;/g, '&') : "";
+
+            // ĐÃ SỬA: Sửa lại chính xác tên biến lurl1 và lurl2
+            var limg = (lurl1 && imageRegex.test(lurl1)) ? lurl1 : 
+                       (lurl2 && imageRegex.test(lurl2)) ? lurl2 : 
+                       "https://sexmupxinh.net/file/cover/ong-chu-dam-duc-lua-em-nu-sinh-vao-cuoc-may-mua-tao-bao.jpg";
            
             items.push({
-                "id": match[2],          
-                "title": match[1].trim(), 
+                "id": id,          
+                "title": title, 
                 "posterUrl": limg,
                 "backdropUrl": limg
             });
         }
 
-        // --- KHU VỰC SỬA LẠI PHÂN TRANG CHUẨN ---
         var currentPage = 1;
         var totalPages = 1;
 
         if (html) {
-            // 1. Tìm giá trị đang hiển thị (Trang hiện tại) trong thẻ input v-form-control
-            // [\s\S]*?
-            // <div class="pagenavi"><a class="active" aria-current="page">1</a>
-            var currentMatch = html.match(/class="pagenavi"[\s\S]*?class="active"[\s\S]*?>(\d+)<\/a>/i) ;
-            
-            // 2. Tìm giá trị max (Tổng số trang) trong thẻ input v-form-control
+            var currentMatch = html.match(/class="pagenavi"[\s\S]*?class="active"[\s\S]*?>(\d+)<\/a>/i);
             var maxMatch = html.match(/>(\d+)<\/a><a[^>]*>→<\/a>/i);
-                       
 
             if (currentMatch && currentMatch[1]) {
                 currentPage = parseInt(currentMatch[1], 10);
@@ -133,7 +129,6 @@ var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"
                 totalPages = parseInt(maxMatch[1], 10);
             }
         }
-        // ----------------------------------------
 
         return JSON.stringify({
             "items": items,
@@ -153,29 +148,23 @@ function parseSearchResponse(html) {
     return parseListResponse(html);
 }
 
-// ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
 function parseMovieDetail(html) {
-    // Nhiệm vụ của bạn ở đây: Viết Regex cào tên, mô tả, ảnh cover, và quan trọng nhất là DANH SÁCH TẬP PHIM.
-    // Lấy url video <link rel="canonical" href="https://sexmupxinh.net/phim/co-em-ve-mat-dam-dang-lam-tinh-cuc-phe/">
-    var rmatch = html.match(/link\srel="canonical"[\s\S]*?href="([\s\S]*?)"/i) ;
-    if (rmatch && rmatch[1]) {
-           var lurl = rmatch[1];
-     }
-     // Lấy img video <meta property="og:image" content="https://sexmupxinh.net/file/cover/co-em-ve-mat-dam-dang-lam-tinh-cuc-phe.jpg">
-    var rmatch = html.match(/meta\s+property="og:image"\s+content="([\s\S]*?)"/i) ;
-    if (rmatch && rmatch[1]) {
-           var limg = rmatch[1];
-     }
-    // lấy tên phim <meta property="og:title" content="Cô em vẻ mặt dâm đãng làm tình cực phê">
-    var rmatch = html.match(/meta\s+property="og:title"\s+content="([\s\S]*?)"/i) ;
-    if (rmatch && rmatch[1]) {
-           var lname = rmatch[1];
-     }
-     // Lấy nội dung phim <div class="content">
-     var rmatch = html.match(/<div\s+class="content">([\s\S]*?)<\/div>/i) ;
-    if (rmatch && rmatch[1]) {
-           var ldes = rmatch[1];
-     }
+    var lurl = "";
+    var limg = "";
+    var lname = "Đang cập nhật...";
+    var ldes = "Không có mô tả.";
+
+    var rmatch = html.match(/link\srel="canonical"[\s\S]*?href="([\s\S]*?)"/i);
+    if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
+
+    rmatch = html.match(/meta\s+property="og:image"\s+content="([\s\S]*?)"/i);
+    if (rmatch && rmatch[1]) { limg = rmatch[1]; }
+
+    rmatch = html.match(/meta\s+property="og:title"\s+content="([\s\S]*?)"/i);
+    if (rmatch && rmatch[1]) { lname = rmatch[1]; }
+
+    rmatch = html.match(/<div\s+class="content">([\s\S]*?)<\/div>/i);
+    if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
      
     return JSON.stringify({
         id: lurl,
@@ -185,11 +174,8 @@ function parseMovieDetail(html) {
         description: ldes,
         servers: [
             {
-                name: "Full", // Tên server phim
+                name: "Full",
                 episodes: [
-                    // ⚠️ LƯU Ý LỚN: `id` của tập phim có thể là link trực tiếp (.mp4/.m3u8), hoặc là một slug phụ.
-                    // Nếu là slug phụ (ví dụ: 'tap-1'), khi người dùng bấm xem, App sẽ lại gọi hàm getUrlDetail('tap-1') 
-                    // để lấy HTML tập 1 rồi ném vào hàm parseDetailResponse() dưới đây.
                     { id: lurl, name: "Full", slug: "" }
                 ]
             }
@@ -199,24 +185,19 @@ function parseMovieDetail(html) {
         rating: 8.0,
         status: "Full",
         duration: "120 Phút",
-        casts: "Diễn viên A, B",
-        director: "Đạo diễn C",
-        category: "Hành Động"
+        casts: "Diễn viên",
+        director: "Đạo diễn",
+        category: "18+"
     });
 }
 
-/**
- * Hàm lấy LINK VIDEO CUỐI CÙNG (Trọng yếu nhất)
- * Được gọi khi người dùng ấn nút "PHÁT VIDEO" (Play)
- */ 
- 
- //
 function parseDetailResponse(html) {
     try {
-    	var rmatch = html.match(/<div\s+class="video-player mobile"[\s\S]*?iframe\s+src="([\s\S]*?)"/i) ;
-   	 if (rmatch && rmatch[1]) {
-           var streamUrl  = rmatch[1];
-    	 }	
+        var streamUrl = "";
+        var rmatch = html.match(/<div\s+class="video-player mobile"[\s\S]*?iframe\s+src="([\s\S]*?)"/i);
+        if (rmatch && rmatch[1]) {
+            streamUrl = rmatch[1];
+        }	
         var customJs = "var style = document.createElement('style');" +
             "style.innerHTML = '#playback { display: none !important; }';" +
             "document.head.appendChild(style);";
@@ -233,7 +214,6 @@ function parseDetailResponse(html) {
         return JSON.stringify({ url: "", headers: {} });
     }
 }
-
 
 function parseCategoriesResponse(html) { return "[]"; }
 function parseCountriesResponse(html) { return "[]"; }
