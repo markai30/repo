@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.1",             
         "baseUrl": "https://xhamster.com",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -16,14 +16,7 @@ function getManifest() {
         "playerType": "embed"
     });
 }
-/*
-{ "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
-        { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
-        { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" }, // ĐÃ SỬA: Thêm dấu phẩy hợp lệ ở đây
-        { "slug": "phim-sex-chau-au", "title": "Châu Âu", "type": "Horizontal" },
-        { "slug": "phim-sex-trung-quoc", "title": "Trung Quốc", "type": "Horizontal" }
-    ]); https://xhamster.com/categories/vietnamese
-*/
+
 function getHomeSections() {
     return JSON.stringify([
         { "slug": "categories/vietnamese", "title": "Việt Nam", "type": "Grid" }
@@ -88,26 +81,23 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        
-        // ĐÃ SỬA: Thêm cờ g, sửa [\\s\\S+]*? thành [\\s\\S]*? và thêm khoảng trắng linh hoạt [^>]*
-        // <img data-role="thumb-preview-img" aria-hidden="true" class="tnum-1 thumb-image-container__image" src="https://ic-vt-nss.cdnsolutions.media/a/MzFkZTliZDVmNmY5ODA0NzZhYTI5ZTE1ZjNlOTEwOWQ/s(w:1280,h:720),webp/029/498/708/1280x720.17776802.jpg" srcset="https://ic-vt-nss.cdnsolutions.media/a/NDU3MDhlZTA1NTQyNjkzZGUzMmE5NzI1OGY2NDNkMDY/s(w:526,h:298),webp/029/498/708/1280x720.17776802.jpg" alt="I SHARE A BED WITH MY STEPSON AND I END UP FUCKING HIS DICK. ( PART 1 )">
-        var regex = /class="video-thumb__image-container[\s\S]*?data-role="thumb-link"[\s\S]*?href="([^"]+)"[\s\S]*?data-previewvideo="([^"]+)"[^>]*aria-label="([^"]+)"[\s\S]*?img\sdata-role="thumb-preview-img"[\s\S]*?src="([\s\S]*?)"/gi;
+        // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item
+        var regex = /class="video-thumb__image-container[\s\S]*?data-role="thumb-link"[\s\S]*?href="([^"]+)"[\s\S]*?data-previewvideo="([^"]+)"[^>]*aria-label="([^"]+)"([^>]*>)/gi;
         var match;
         
         while ((match = regex.exec(html)) !== null) {
             var id = match[1].trim();
             var title = match[3].trim();
-            var previewVideo = match[2]; // Đây là link video preview (.mp4)
-            var limg = match[4];
-
-            // LƯU Ý: Nếu trang web có ảnh thumb tĩnh dạng JPG, bạn nên viết thêm regex nhỏ bóc ở đây.
-            // Hiện tại nếu ép previewVideo vào posterUrl thì App sẽ không hiện được ảnh tĩnh.
-            var imgPlaceholder = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500"; // Ảnh tạm thời nếu không tìm thấy ảnh gốc
+            
+            // ĐÃ SỬA: Dùng cơ chế quét phụ vùng an toàn để nhặt chính xác src ảnh
+            var remainingHtml = html.substring(match.index, match.index + 1200);
+            var imgMatch = remainingHtml.match(/<img[^>]*?src="([^"]+)"/i);
+            var limg = imgMatch ? imgMatch[1] : "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500";
 
             items.push({
                 "id": id,          
                 "title": title, 
-                "posterUrl": limg, // Nên thay bằng link ảnh thực tế (.jpg/.png) nếu tìm được trong HTML
+                "posterUrl": limg, 
                 "backdropUrl": limg
             });
         }
@@ -117,8 +107,6 @@ function parseListResponse(html) {
 
         if (html) {
             var currentMatch = html.match(/page-button-link--active"[\s\S]*?>(\d+)<\/a>/i);
-            
-            // ĐÃ SỬA: Cho phép khoảng trắng hoặc thuộc tính khác xuất hiện trước dấu ">" của thẻ <a>
             var maxMatch = html.match(/class="page-limit-button page-limit-button--right"[\s\S]*?page-button-link[^>]*>(\d+)<\/a>/i);
 
             if (currentMatch && currentMatch[1]) {
@@ -153,16 +141,16 @@ function parseMovieDetail(html) {
     var lname = "Đang cập nhật...";
     var ldes = "Không có mô tả.";
 
-    var rmatch = html.match(/link\srel="canonical"[\s\S]*?href="([\s\S]*?)"/i);
+    var rmatch = html.match(/link\s+rel="canonical"\s+href="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lurl = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+property="og:image"\s+content="([\s\S]*?)"/i);
+    rmatch = html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { limg = rmatch[1]; }
 
-    rmatch = html.match(/meta\s+property="og:title"\s+content="([\s\S]*?)"/i);
+    rmatch = html.match(/meta\s+property="og:title"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { lname = rmatch[1]; }
 
-    rmatch = html.match(/<div\s+class="content">([\s\S]*?)<\/div>/i);
+    rmatch = html.match(/meta\s+property="og:description"\s+content="([^"]+)"/i);
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }
      
     return JSON.stringify({
@@ -173,19 +161,19 @@ function parseMovieDetail(html) {
         description: ldes,
         servers: [
             {
-                name: "Full",
+                name: "Xhamster Stream",
                 episodes: [
-                    { id: lurl, name: "Full", slug: "" }
+                    { id: lurl, name: "Full Video", slug: "full" }
                 ]
             }
         ],
         quality: "HD",
-        year: "????",
-        rating: 8.0,
+        year: 2026,
+        rating: 8.5,
         status: "Full",
-        duration: "????",
-        casts: "Diễn viên",
-        director: "Đạo diễn",
+        duration: "N/A",
+        casts: "N/A",
+        director: "N/A",
         category: "18+"
     });
 }
@@ -193,20 +181,33 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var streamUrl = "";
-        var rmatch = html.match(/<div\s+class="video-player mobile"[\s\S]*?iframe\s+src="([\s\S]*?)"/i);
-        if (rmatch && rmatch[1]) {
-            streamUrl = rmatch[1];
-        }	
-        var customJs = "var style = document.createElement('style');" +
-            "style.innerHTML = '#playback { display: none !important; }';" +
-            "document.head.appendChild(style);";
+        
+        // ĐÃ SỬA: Xhamster giấu link luồng trong biến cấu hình JSON initials.
+        // Đoạn Regex dưới đây bóc tách toàn bộ Object cấu hình luồng phát của họ (hls hoặc mp4)
+        var scriptMatch = html.match(/window\.initials\s*=\s*(\{[\s\S]*?\});/i) || html.match(/id="initials-script"[^>]*>(\{[\s\S]*?\})<\/script>/i);
+        
+        if (scriptMatch && scriptMatch[1]) {
+            var jsonData = JSON.parse(scriptMatch[1]);
+            // Tìm kiếm sâu trong cấu trúc object để lấy link m3u8 hoặc mp4 chất lượng cao nhất
+            if (jsonData.videoModel && jsonData.videoModel.sources) {
+                var sources = jsonData.videoModel.sources;
+                streamUrl = sources.hls || sources.mp4 || "";
+            }
+        }
+        
+        // Dự phòng (Fallback) nếu hệ thống không parse được JSON, quét thô tìm file hls (.m3u8) công khai trong script
+        if (!streamUrl) {
+            var rawUrlMatch = html.match(/"(https?:\\?\/\\?\/[^"]+?\.m3u8[^"]*?)"/i);
+            if (rawUrlMatch && rawUrlMatch[1]) {
+                streamUrl = rawUrlMatch[1].replace(/\\/g, '');
+            }
+        }
 
         return JSON.stringify({
             url: streamUrl,
             headers: {
-                "Referer": "https://clbphimxua.com/",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs
+                "Referer": "https://xhamster.com/",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             }
         });
     } catch (error) {
