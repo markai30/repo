@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "2.1",             
+        "version": "2.5",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -218,18 +218,59 @@ function parseDetailResponse(html) {
         }	
         var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
 
-        var customJs = "alert('"+decodedUrl+"');var style = document.createElement('style');" +
-            "style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden;background:black}div#player {display: Block !important}';" +
-            "document.head.appendChild(style);";
+        var customJs = `
+function initCustomVideoFix() {
+  alert('${decodedUrl}');
 
-        return JSON.stringify({
-            url: decodedUrl,
-            headers: {
-                "Referer": "https://www.superporn.com",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Custom-Js": customJs
-            }
-        });
+  // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
+  const style = document.createElement('style');
+  style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden;background:black}div#player {display: block !important}';
+  document.head.appendChild(style);
+
+  // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
+  const checkInterval = setInterval(() => {
+    const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
+    const video = document.querySelector('video');
+
+    // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
+    if (theaterButton && video) {
+      clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
+
+      // Xử lý nút Cinema mode
+      const buttonText = theaterButton.innerText || theaterButton.textContent || "";
+      if (buttonText.toLowerCase().includes('cinema mode')) {
+        theaterButton.click();
+        console.log("Đã kích hoạt Cinema mode thành công!");
+      }
+
+      // Xử lý bật tiếng video
+      if (video.muted) {
+        video.muted = false;
+        console.log("Đã mở tiếng video thành công!");
+      }
+    }
+  }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
+
+  // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
+  setTimeout(() => clearInterval(checkInterval), 10000);
+}
+
+// Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+} else {
+  initCustomVideoFix();
+}
+`;
+
+return JSON.stringify({
+    url: decodedUrl,
+    headers: {
+        "Referer": "https://www.superporn.com",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Custom-Js": customJs.trim()
+    }
+});
     } catch (error) {
         return JSON.stringify({ url: "", headers: {} });
     }
