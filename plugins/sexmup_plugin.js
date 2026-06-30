@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.7",             
+        "version": "1.1",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -26,7 +26,9 @@ function getManifest() {
 */
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "", "title": "Clip Mới", "type": "Grid" }
+        { "slug": "", "title": "Clip Mới", "type": "Grid" },
+        { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
+        { "slug": "phim-sex--khong-che", "title": "Không Che", "type": "Horizontal" }
     ]);
 }
 
@@ -185,10 +187,10 @@ function parseMovieDetail(html) {
             }
         ],
         quality: "HD",
-        year: "????",
+        year: 2026, // ĐÃ SỬA: Thay "????" bằng số nguyên để không lỗi ép kiểu
         rating: 8.0,
         status: "Full",
-        duration: "????",
+        duration: 0, // ĐÃ SỬA: Thay "????" bằng 0 đề phòng lỗi ép kiểu tương tự
         casts: "Diễn viên",
         director: "Đạo diễn",
         category: "18+"
