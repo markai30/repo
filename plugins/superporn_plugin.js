@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.2",             
+        "version": "1.0",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -216,7 +216,7 @@ function parseDetailResponse(html) {
         var decodedUrl = streamUrl ? decodeURIComponent(streamUrl) : "";
 
         var customJs = "alert('"+decodedUrl+"');var style = document.createElement('style');" +
-            "style.innerHTML = '#playback { display: none !important; }.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-100px}body{overflow:hidden}';" +
+            "style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden}';" +
             "document.head.appendChild(style);";
 
         return JSON.stringify({
