@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "2.0",             
+        "version": "1.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -168,12 +168,12 @@ function parseMovieDetail(html) {
         title: lname,
         posterUrl: limg,
         backdropUrl: limg,
-        description: ldes + "\r\n" + streamUrl + "\r\n" +lurl,
+        description: ldes + "\r\n\r\n" + streamUrl + "\r\n\r\n" +lurl,
         servers: [
             {
                 name: "Xhamster Stream",
                 episodes: [
-                    { id: lurl, name: streamUrl, slug: "full" }
+                    { id: lurl, name: "Xem Ngay", slug: "full" }
                 ]
             }
         ],
