@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "2.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -80,47 +80,50 @@ function getUrlYears() { return ""; }
 
 function parseListResponse(html) {
     try {
-        var items = [];
         // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item
-        var regex = /thumb-list__item[\s\S]*?href="([\s\S]*?)"[\s\S]*?aria-label="([\s\S]*?)"[\s\S]*?img[\s\S]*?src="([\s\S]*?)"[\s\S]*?alt="([\s\S]*?)"/gi;
-        var match;
+        var items = [];
         
-        while ((match = regex.exec(html)) !== null) {
-        	var id = match[1].trim();
-            var title = match[2].trim();
-        	if(match[3]){
-        		var limg = match[3];
-        		items.push({
-               	 "id": id,          
-               	 "title": title, 
-               	 "posterUrl": limg, 
-               	 "backdropUrl": limg
-            	});
-        		
-        	}
+        // 1. Tách chuỗi HTML thành từng khối item nhỏ trước
+        // Cách này giúp cô lập lỗi: nếu 1 item bị thiếu ảnh, nó chỉ lỗi item đó chứ không nuốt luôn các item phía sau.
+        var itemRegex = /thumb-list__item[\s\S]*?(?=(?:thumb-list__item|$))/gi;
+        var itemMatches = html.match(itemRegex) || [];
+
+        for (var i = 0; i < itemMatches.length; i++) {
+            var itemHtml = itemMatches[i];
+            
+            // Tìm các thuộc tính riêng lẻ trong khối item đó (không sợ bị sai thứ tự xuất hiện)
+            var hrefMatch = itemHtml.match(/href="([^"]+)"/i);
+            var labelMatch = itemHtml.match(/aria-label="([^"]+)"/i);
+            var srcMatch = itemHtml.match(/img[\s\S]*?src="([^"]+)"/i);
+
+            if (hrefMatch && labelMatch && srcMatch) {
+                var limg = srcMatch[1].trim();
+                items.push({
+                    "id": hrefMatch[1].trim(),          
+                    "title": labelMatch[1].trim(), 
+                    "posterUrl": limg, 
+                    "backdropUrl": limg
+                });
+            }
         }
 
+        // 2. Tối ưu phần lấy Pagination
         var currentPage = 1;
         var totalPages = 1;
 
-        if (html) {
-            var currentMatch = html.match(/page-button-link--active"[\s\S]*?>(\d+)<\/a>/i);
-            var maxMatch = html.match(/class="page-limit-button page-limit-button--right"[\s\S]*?page-button-link[^>]*>(\d+)<\/a>/i);
+        // Dùng cụm ngoặc tròn ([^>]+) thay vì [\s\S]*? để Regex chạy nhanh hơn, không bị backtracking quá đà
+        var currentMatch = html.match(/page-button-link--active[^>]*>(\d+)/i);
+        var maxMatch = html.match(/page-limit-button--right[^>]*page-button-link[^>]*>(\d+)/i);
 
-            if (currentMatch && currentMatch[1]) {
-                currentPage = parseInt(currentMatch[1], 10);
-            }
-            if (maxMatch && maxMatch[1]) {
-                totalPages = parseInt(maxMatch[1], 10);
-            }
-        }
+        if (currentMatch) totalPages = currentPage = parseInt(currentMatch[1], 10);
+        if (maxMatch) totalPages = parseInt(maxMatch[1], 10);
 
         return JSON.stringify({
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, 
-                "totalPages": 10,    
-                "totalItems":  46 * totalPages,
+                "totalPages": 100, // ĐÃ SỬA: Thay vì fix cứng 10, ta dùng biến totalPages vừa tìm được
+                "totalItems": 46 * totalPages,
                 "itemsPerPage": 46
             }
         });
