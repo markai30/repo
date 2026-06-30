@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.5",             
+        "version": "1,2",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -205,7 +205,7 @@ function initCustomVideoFix() {
 
   // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
   const style = document.createElement('style');
-  style.innerHTML = 'footer,#sidebar,.col-70,#playback,.header,.navbar,.intensive-add,#overlay-video{display:none!important}#video-layout{margin-top:-50px}body{overflow:hidden;background:black}div#player {display: block !important}';
+  style.innerHTML = '';
   document.head.appendChild(style);
 
   // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
