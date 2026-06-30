@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://sportshots.pro",
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -18,10 +18,10 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" },
-        { "slug": "phim-le", "title": "Phim Lẻ", "type": "Grid" },
-        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Grid" },
-        { "slug": "phim-bo", "title": "Phim Bộ", "type": "Grid" }
+        { "slug": "phim-le", "title": "Phim Lẻ", "type": "Horizontal" },
+        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Horizontal" },
+        { "slug": "phim-bo", "title": "Phim Bộ", "type": "Horizontal" },
+        { "slug": "motphim", "title": "Phim Mới", "type": "Grid" }
     ]);
 }
 
