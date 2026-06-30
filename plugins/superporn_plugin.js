@@ -7,7 +7,7 @@ function getManifest() {
         "id": "superporn",          
         "name": "SuperPorn",
         "description": "XXX Hay",
-        "version": "1.5",             
+        "version": "1.1",             
         "baseUrl": "https://www.superporn.com",
         "iconUrl": "https://superporn.com/favicon.ico", 
         "isEnabled": true,
@@ -26,9 +26,7 @@ function getManifest() {
 */
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "big-tits", "title": "Vú Bự", "type": "Horizontal" },
-        { "slug": "anal", "title": "Lỗ Nhị", "type": "Horizontal" },
-        { "slug": "gangbang", "title": "Tập Thể", "type": "Horizontal" }
+        { "slug": "japanese", "title": "Vú Bự", "type": "Horizontal" }
     ]);
 }
 
