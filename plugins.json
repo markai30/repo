@@ -2,10 +2,10 @@
     "version": 1,
     "plugins": [
         {
-            "id": "xhamster",
-            "name": "Xhamster",
+            "id": "superporn",
+            "name": "SuperPorn",
             "version": "1.0",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/xhamster_plugin.js",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/superporn_plugin.js",
             "iconUrl": "https://sexmupxinh.net/static/img/logo.png"
         },
         {
