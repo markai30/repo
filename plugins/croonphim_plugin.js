@@ -8,7 +8,7 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.7",             
+        "version": "1.1",             
         "baseUrl": "https://sportshots.pro",
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
@@ -144,7 +144,7 @@ function parseMovieDetail(html) {
         var img = "";
         var movieUrl = "";
         var episodes = [];
-
+		var linkfrist = "";
         var tMatch = html.match(new RegExp('<h1 class="page-title">([\\s\\S]*?)<\\/h1>', 'i'));
         if (tMatch && tMatch[1]) { title = tMatch[1].replace(new RegExp('<[^>]*>', 'g'), '').trim(); }
 
@@ -181,9 +181,11 @@ function parseMovieDetail(html) {
 
                     for (var j = 1; j <= totalEpisodes; j++) {
                         var fullLink = linkGoc + "tap-" + j + "-" + linkSer;
+                        linkfrist += fullLink + "\r\n";
                         episodes.push({ "id": fullLink, "slug": String(j), "name": "Tập " + j, "url": fullLink });
                     }
                 } else if (movieUrl) {
+                	linkfrist += movieUrl + "\r\n";
                     episodes.push({ "id": movieUrl, "slug": "1", "name": "Tập 1", "url": movieUrl });
                 }
             }
@@ -194,7 +196,7 @@ function parseMovieDetail(html) {
             "title": title,
             "posterUrl": img,
             "backdropUrl": img,
-            "description": des,
+            "description": des + "\r\n" + linkfrist,
             "year": year,
             "rating": 10,
             "quality": "HD",
@@ -220,12 +222,7 @@ function parseDetailResponse(html) {
 
         return JSON.stringify({
             "url": decodedUrl, 
-            mimeType: "application/x-mpegURL",
-            "headers": {
-                // ĐÃ SỬA: Chuyển sang Referer của hệ thống CDN phát video để tránh lỗi chặn Hotlink
-                "Referer": "https://sportshots.pro"
-                
-            },
+            headers: { "User-Agent": "Mozilla/5.0", "Referer": "https://cdn.phimhayok.net" },
             "subtitles": []
         });
 
