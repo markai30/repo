@@ -2,11 +2,11 @@
     "version": 1,
     "plugins": [
         {
-            "id": "Crophim",
-            "name": "Crophim",
-            "version": "1.1",
-            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/crophim_plugin.js",
-            "iconUrl": "https://coon.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg"
+            "id": "SexMup",
+            "name": "SexMup",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/sexmup_plugin.js",
+            "iconUrl": "https://sexmupxinh.net/static/img/logo.png"
         },
         {
             "id": "rophim",
