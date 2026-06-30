@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript & HTML Interactive Tester (Pretty JSON)</title>
+    <!-- Nhúng thư viện jQuery chính thức -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        h2 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            color: #2c3e50;
+        }
+        .url-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .url-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-primary:hover { background-color: #2980b9; }
+        .btn-success { background-color: #2ecc71; color: white; }
+        .btn-success:hover { background-color: #27ae60; }
+
+        .main-layout {
+            display: flex;
+            gap: 15px;
+            flex: 1;
+            min-height: 0;
+        }
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .panel-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #34495e;
+        }
+        textarea {
+            width: 100%;
+            flex: 1;
+            resize: none;
+            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            background-color: #fff;
+        }
+        
+        .js-controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .output-panel {
+            margin-top: 15px;
+            height: 250px; /* Tăng thêm một chút để xem cấu trúc JSON xuống dòng */
+            min-height: 150px;
+            background: #1e1e1e;
+            color: #00ff00;
+            border-radius: 6px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .output-log {
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre; /* Chuyển thành pre để giữ đúng tab/khoảng trắng lề của JSON */
+        }
+        .log-item { margin-bottom: 4px;color:white }
+        .log-item.log-error { color: #ff6b6b; }
+        .log-item.log-info { color: #5bc0de; }
+        .log-item.log-return { color: #f1c40f; font-weight: bold; }
+        
+        #sandbox {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>JavaScript & HTML Lab (jQuery v3.7.1)</h2>
+
+    <!-- Thanh dán URL để lấy mã nguồn -->
+    <div class="url-bar">
+        <input type="text" id="urlInput" placeholder="Nhập đường dẫn website (Ví dụ: https://example.com) để lấy HTML source..." />
+        <button class="btn btn-primary" id="btnFetch">Tải Source HTML</button>
+    </div>
+
+    <!-- Khu vực nhập code -->
+    <div class="main-layout">
+        <!-- Ô chứa mã HTML -->
+        <div class="panel">
+            <div class="panel-title">Mã nguồn HTML (Vùng Sandbox)</div>
+            <textarea id="htmlInput" placeholder="Dán hoặc nhập mã HTML vào đây..."></textarea>
+        </div>
+
+        <!-- Ô chứa mã JavaScript -->
+        <div class="panel">
+            <div class="panel-title">Mã JavaScript (Auto-Format JSON Return)</div>
+            <textarea id="jsInput" placeholder="// Dán code hàm của bạn vào đây..."></textarea>
+            
+            <div class="js-controls">
+                <button class="btn btn-success" id="btnRunAll">Chạy toàn bộ JS</button>
+                <select id="functionSelect">
+                    <option value="">-- Chọn hàm cụ thể để chạy --</option>
+                </select>
+                <button class="btn btn-primary" id="btnRunFunc" disabled>Chạy hàm đã chọn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực hiển thị Output giống Console -->
+    <div class="output-panel">
+        <div class="output-header">
+            <span>CONSOLE OUTPUT</span>
+            <span style="cursor:pointer; color: #ff6b6b;" id="btnClearConsole">[Xóa Console]</span>
+        </div>
+        <div class="output-log" id="consoleLog"></div>
+    </div>
+
+    <div id="sandbox"></div>
+
+    <script>
+        $(document).ready(function() {
+            const $htmlInput = $('#htmlInput');
+            const $jsInput = $('#jsInput');
+            const $consoleLog = $('#consoleLog');
+            const $functionSelect = $('#functionSelect');
+            const $btnRunFunc = $('#btnRunFunc');
+            const $sandbox = $('#sandbox');
+
+            // Nạp sẵn hàm của bạn để tiện chạy thử nghiệm ngay lập tức
+            $jsInput.val(`function getPrimaryCategories() {\n    return JSON.stringify([\n        { "slug": "categories/anal", "name": "Lỗ Nhị"},\n        { "slug": "categories/big-tits", "name": "Vú Bự"},\n        { "slug": "categories/gangbang", "name": "Tập Thể"},\n        { "slug": "categories/threesome", "name": "Chơi 3"},\n        { "slug": "categories/russian", "name": "Gái Nga"},\n        { "slug": "categories/hentai", "name": "Hentai"}\n    ]);\n}`);
+            setTimeout(() => { $jsInput.trigger('blur'); }, 200);
+
+            // --- 1. CHỨC NĂNG IN CONSOLE (Hỗ trợ Pretty Print JSON và Object) ---
+            function logToConsole(message, type = 'log') {
+                let cssClass = '';
+                if (type === 'error') cssClass = 'log-error';
+                if (type === 'info') cssClass = 'log-info';
+                if (type === 'return') cssClass = 'log-return';
+
+                let formattedMessage = message;
+
+                // Nếu là Object hoặc Array thuần
+                if (typeof message === 'object' && message !== null) {
+                    try { 
+                        formattedMessage = JSON.stringify(message, null, 4); 
+                    } catch(e) { 
+                        formattedMessage = String(message); 
+                    }
+                } 
+                // Nếu là chuỗi (String), kiểm tra xem chuỗi đó có phải là JSON được stringify sẵn không
+                else if (typeof message === 'string') {
+                    let trimmed = message.trim();
+                    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+                        try {
+                            // Tiến hành Parse ngược lại rồi Stringify dạng đẹp có thụt lề 4 khoảng trắng
+                            let parsed = JSON.parse(message);
+                            formattedMessage = JSON.stringify(parsed, null, 4);
+                        } catch (e) {
+                            // Không phải JSON chuẩn, giữ nguyên chuỗi văn bản gốc
+                            formattedMessage = message;
+                        }
+                    }
+                }
+
+                // Tiêu đề nhận diện dạng dữ liệu trả về cho đẹp mắt
+                let headerPrefix = '';
+                if (type === 'return') {
+                    headerPrefix = `👉 [Return Value] [${new Date().toLocaleTimeString()}]\n`;
+                } else {
+                    headerPrefix = `[${new Date().toLocaleTimeString()}] `;
+                }
+
+                $consoleLog.append(`<div class="log-item ${cssClass}">${headerPrefix}${formattedMessage}</div>`);
+                $consoleLog.scrollTop($consoleLog[0].scrollHeight);
+            }
+
+            const nativeLog = console.log;
+            const nativeError = console.error;
+
+            $('#btnClearConsole').click(function() { $consoleLog.empty(); });
+
+            // --- 2. LẤY SOURCE HTML TỪ URL ---
+            $('#btnFetch').click(function() {
+                let url = $('#urlInput').val().trim();
+                if (!url) { alert('Vui lòng nhập URL.'); return; }
+                if (!/^https?:\/\//i.test(url)) {
+                    url = 'https://' + url;
+                    $('#urlInput').val(url);
+                }
+
+                logToConsole(`Đang tải dữ liệu từ: ${url}...`, 'info');
+                $.getJSON('https://api.allorigins.win/get?url=' + encodeURIComponent(url) + '&callback=?', function(data){
+                    if(data && data.contents) {
+                        $htmlInput.val(data.contents);
+                        logToConsole('Tải Source HTML thành công!', 'info');
+                    } else {
+                        logToConsole('Không thể lấy được nội dung từ URL này.', 'error');
+                    }
+                }).fail(function() {
+                    logToConsole('Lỗi kết nối hoặc URL cấu hình chặn bảo mật.', 'error');
+                });
+            });
+
+            // --- 3. PHÂN TÍCH TRÍCH XUẤT CÁC HÀM ---
+            $jsInput.on('input blur', function() {
+                let jsCode = $(this).val();
+                let funcRegex = /(?:function\s+([a-zA-Z0-9_$]+)|(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>))/g;
+                let match;
+                let functions = [];
+
+                while ((match = funcRegex.exec(jsCode)) !== null) {
+                    let funcName = match[1] || match[2];
+                    if (funcName && !functions.includes(funcName)) { functions.push(funcName); }
+                }
+
+                $functionSelect.html('<option value="">-- Chọn hàm cụ thể để chạy --</option>');
+                if (functions.length > 0) {
+                    functions.forEach(f => { $functionSelect.append(`<option value="${f}">${f}()</option>`); });
+                }
+                $functionSelect.trigger('change');
+            });
+
+            $functionSelect.change(function() {
+                if ($(this).val()) { $btnRunFunc.removeAttr('disabled'); } 
+                else { $btnRunFunc.attr('disabled', 'disabled'); }
+            });
+
+            // --- 4. ENGINE THỰC THI JAVASCRIPT ---
+            function executeEngine(runMode) {
+                let htmlCode = $htmlInput.val();
+                $sandbox.html(htmlCode);
+
+                let jsCode = $jsInput.val();
+                
+                window.console.log = function(...args) {
+                    logToConsole(args.length > 1 ? args : args[0]);
+                    nativeLog.apply(console, args);
+                };
+                window.console.error = function(...args) {
+                    logToConsole(args.length > 1 ? args : args[0], 'error');
+                    nativeError.apply(console, args);
+                };
+
+                let executeCode = '';
+
+                if (runMode === 'single') {
+                    let selectedFunc = $functionSelect.val();
+                    logToConsole(`--- Bắt đầu chạy hàm: ${selectedFunc}() ---`, 'info');
+                    
+                    executeCode = `
+                        ${jsCode}
+                        \n;try { 
+                            let result = ${selectedFunc}(); 
+                            if(result !== undefined) {
+                                console.info(result);
+                            }
+                        } catch(err) { 
+                            console.error(err.message); 
+                        }
+                    `;
+                } else {
+                    logToConsole('--- Bắt đầu chạy toàn bộ JavaScript ---', 'info');
+                    executeCode = jsCode;
+                }
+
+                try {
+                    let interceptorJs = `
+                        (function($, jQuery){
+                            console.info = function(msg) { window.customLogReturn(msg); };
+                            ${executeCode}
+                        })(function(selector, context){ 
+                            return jQuery(selector, context || '#sandbox'); 
+                        }, function(selector, context){ 
+                            return jQuery(selector, context || '#sandbox'); 
+                        });
+                    `;
+                    
+                    window.customLogReturn = function(val) { logToConsole(val, 'return'); };
+                    window.eval(interceptorJs);
+                } catch (error) {
+                    logToConsole(error.name + ': ' + error.message, 'error');
+                }
+            }
+
+            $('#btnRunAll').click(function() { executeEngine('all'); });
+            $btnRunFunc.click(function() { executeEngine('single'); });
+        });
+    </script>
+</body>
+</html>
