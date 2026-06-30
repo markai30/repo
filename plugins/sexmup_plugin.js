@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -19,12 +19,11 @@ function getManifest() {
 // 
 function getHomeSections() {
     return JSON.stringify([
-    	{ "slug": "", "title": "Phim Sex mới", "type": "Horizontal" },
         { "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
         { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
-        { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" },
+        { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" }
         { "slug": "phim-sex-chau-au", "title": "Châu Âu", "type": "Horizontal" },
-        { "slug": "phim-sex-trung-quoc", "title": "Trung Quốc", "type": "Horizontal" }
+       { "slug": "phim-sex-trung-quoc", "title": "Trung Quốc", "type": "Horizontal" }
     ]);
 }
 
