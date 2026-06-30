@@ -91,16 +91,29 @@ function parseListResponse(html) {
                 "backdropUrl": cleanThumb
             });
         }
-        var $page = html.match(/<input class="form-control v-form-control" required="" max="(\d+)" type="number" value="(\d+)"/);
-        var $curent = 1;
-        var $total = 1;
-        if($page && $page[2]){
-        	$curent = $page[2];
-        	$total = $page[1];
-		}
+
+        // ĐÃ SỬA: Khởi tạo mặc định là kiểu Số (Number)
+        var currentPage = 1;
+        var totalPages = 1;
+
+        var pageMatch = html.match(/<input class="form-control v-form-control" required="" max="(\d+)" type="number" value="(\d+)"/);
+        
+        if (pageMatch) {
+            // ĐÃ SỬA: Ép kiểu dữ liệu từ String sang Number bằng parseInt để App thực hiện phép toán +1 sang trang chính xác
+            if (pageMatch[2]) {
+                currentPage = parseInt(pageMatch[2], 10);
+            }
+            if (pageMatch[1]) {
+                totalPages = parseInt(pageMatch[1], 10);
+            }
+        }
+
         return JSON.stringify({
             "items": items,
-            "pagination": { "currentPage": $curent, "totalPages": $total }
+            "pagination": { 
+                "currentPage": currentPage, // Đảm bảo trả về kiểu số (ví dụ: 1)
+                "totalPages": totalPages    // Đảm bảo trả về kiểu số (ví dụ: 10)
+            }
         });
     } catch (e) {
         return JSON.stringify({ "items": [], "pagination": { "currentPage": 1, "totalPages": 1 } });
