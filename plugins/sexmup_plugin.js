@@ -7,7 +7,7 @@ function getManifest() {
         "id": "sexmup",          
         "name": "sexmup",
         "description": "XXX Hay",
-        "version": "1.6",             
+        "version": "1.1",             
         "baseUrl": "https://sexmupxinh.net",
         "iconUrl": "https://sexmupxinh.net/favicon.ico", 
         "isEnabled": true,
@@ -16,9 +16,10 @@ function getManifest() {
         "playerType": "embed"
     });
 }
-// { "slug": "", "title": "Phim Sex mới", "type": "Horizontal" },
+// 
 function getHomeSections() {
     return JSON.stringify([
+    	{ "slug": "", "title": "Phim Sex mới", "type": "Horizontal" },
         { "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
         { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
         { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" },
@@ -93,7 +94,8 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"[\s\S]*?class="video-image"[\s\S]*?src="([^"]+)"/g;
+        // Regex mới: chấp nhận class có thể chứa thêm ký tự khác (như video-image lazyload)
+var regex = /class="video-list"[\s\S]*?a\s+title="([^"]+)"[\s\S]*?href="([^"]+)"[\s\S]*?class="video-image[^"]*"[\s\S]*?src="([^"]+)"/g;
         var match;
         
         while ((match = regex.exec(html)) !== null) {
