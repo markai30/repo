@@ -16,10 +16,9 @@ function getManifest() {
         "playerType": "embed"
     });
 }
-
+// { "slug": "", "title": "Phim Sex mới", "type": "Horizontal" },
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "", "title": "Phim Sex mới", "type": "Horizontal" },
         { "slug": "phim-sex-hiep-dam", "title": "Hiếp Dâm", "type": "Horizontal" },
         { "slug": "phim-sex-loan-luan", "title": "Loạn Luân", "type": "Horizontal" },
         { "slug": "phim-sex-vung-trom", "title": "Vụng Trộm", "type": "Horizontal" },
@@ -30,8 +29,8 @@ function getHomeSections() {
 
 function getPrimaryCategories() {
     return JSON.stringify([
-        { "name": "Hiếp Dâm", "slug": "phim-sex-hiep-dam" },
-        { "name": "Loạn Luân", "slug": "phim-sex-loan-luan" },
+        { "name": "Hiếp Dâm", "slug": "phim-sex-hiep-dam"},
+        { "name": "Loạn Luân", "slug": "phim-sex-loan-luan"},
         { "slug": "phim-sex-vung-trom", "name": "Vụng Trộm"},
         { "slug": "phim-sex-chau-au", "name": "Châu Âu"},
         { "slug": "phim-sex-trung-quoc", "name": "Trung Quốc"},
@@ -150,125 +149,54 @@ function parseSearchResponse(html) {
 
 // ĐÃ SỬA: Chỉ nhận 1 tham số html theo đúng chuẩn lõi hệ thống
 function parseMovieDetail(html) {
-    try {
-        var parts = html.split(/window\s*\.?\s*_\s*movie\s*=\s*(.*)/i);
-        
-        if (!parts || parts.length < 2) {
-            return JSON.stringify({ "id": "error-split", "title": "Không tìm thấy vùng dữ liệu window._movie", "servers": [] });
-        }
-
-        var movieScriptMatch = parts[1];
-        var _movieObj;
-        eval("_movieObj = " + movieScriptMatch);
-
-        if (_movieObj) {
-            var title = _movieObj.title || "Chưa rõ tên phim";
-            var posterUrl = _movieObj.poster || _movieObj.thumb || "";
-            var movieSlug = _movieObj.slug || "";
-            
-            var descMatch = html.match(/class="[^"]*child-box[^"]*"[\s\S]*?class="[^"]*child-content[^"]*"[\s\S]*?class="[^"]*movie-seo-article[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i);
-            var description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : "Đang cập nhật...";
-            
-            var appServers = [];
-
-            if (Array.isArray(_movieObj.episodes)) {
-                for (var s = 0; s < _movieObj.episodes.length; s++) {
-                    var rawServer = _movieObj.episodes[s];
-                    var serverName = rawServer.server_name || rawServer.name || ("Server " + (s + 1));
-                    var episodes = [];
-
-                    if (Array.isArray(rawServer.server_data)) {
-                        for (var i = 0; i < rawServer.server_data.length; i++) {
-                            var ep = rawServer.server_data[i];
-                            
-                            var epName = ep.name ? "Tập " + ep.name : "Tập " + (i + 1);
-                            var epSlug = ep.slug || String(i + 1);
-                            
-                            // LOGIC MỚI: Sinh ra URL trang xem phim hoàn chỉnh để App thực hiện Request GET tiếp theo
-                            // Kết quả: https://phimvn2y.com/dau-la-dai-luc-2-tuyet-the-duong-mon-tap-01.html
-                            var chapterPageUrl = "https://phimvn2y.com/" + movieSlug + "-" + epSlug + ".html";
-
-                            episodes.push({
-                                "id": chapterPageUrl,  // Gán link trang tập vào id để hệ thống Core tải mã nguồn trang đó
-                                "slug": epSlug,
-                                "name": epName,
-                                "url": chapterPageUrl
-                            });
-                        }
-                    }
-
-                    if (episodes.length > 0) {
-                        appServers.push({
-                            "name": serverName.trim(),
-                            "episodes": episodes
-                        });
-                    }
-                }
+    // Nhiệm vụ của bạn ở đây: Viết Regex cào tên, mô tả, ảnh cover, và quan trọng nhất là DANH SÁCH TẬP PHIM.
+    return JSON.stringify({
+        id: "slug-phim",
+        title: "Tên phim cào được",
+        posterUrl: "https://.../anh.jpg",
+        backdropUrl: "https://.../anh-nen.jpg",
+        description: "Mô tả bộ phim cào được từ thẻ <p>...",
+        servers: [
+            {
+                name: "Server Vietsub", // Tên server phim
+                episodes: [
+                    // ⚠️ LƯU Ý LỚN: `id` của tập phim có thể là link trực tiếp (.mp4/.m3u8), hoặc là một slug phụ.
+                    // Nếu là slug phụ (ví dụ: 'tap-1'), khi người dùng bấm xem, App sẽ lại gọi hàm getUrlDetail('tap-1') 
+                    // để lấy HTML tập 1 rồi ném vào hàm parseDetailResponse() dưới đây.
+                    { id: "tap-1-url-hoac-slug", name: "Tập 1", slug: "tap-1" },
+                    { id: "tap-2-url-hoac-slug", name: "Tập 2", slug: "tap-2" }
+                ]
             }
-
-            if (appServers.length === 0) {
-                appServers.push({
-                    "name": "Nguồn Dự Phòng",
-                    "episodes": [{ "id": "full", "slug": "full", "name": "Full", "url": "https://phimvn2y.com" }]
-                });
-            }
-
-            return JSON.stringify({
-                "id": movieSlug || title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                "title": title,
-                "posterUrl": posterUrl,
-                "backdropUrl": posterUrl,
-                "description": description,
-                "year": _movieObj.year || "2026",
-                "rating": 10,
-                "quality": "HD",
-                "servers": appServers 
-            });
-        }
-
-        return JSON.stringify({ "id": "error-object", "title": "Lỗi khởi tạo Object dữ liệu phim", "servers": [] });
-
-    } catch (error) {
-        return JSON.stringify({ "id": "error", "title": "Lỗi Thực Thi Hệ Thống: " + error.message, "servers": [] });
-    }
+        ],
+        quality: "HD",
+        year: 2026,
+        rating: 8.0,
+        status: "Full",
+        duration: "120 Phút",
+        casts: "Diễn viên A, B",
+        director: "Đạo diễn C",
+        category: "Hành Động"
+    });
 }
 
 /**
- * ĐÃ SỬA: Phân giải mã HTML của trang xem phim riêng biệt để bóc link .m3u8 cuối cùng ẩn bên trong
+ * Hàm lấy LINK VIDEO CUỐI CÙNG (Trọng yếu nhất)
+ * Được gọi khi người dùng ấn nút "PHÁT VIDEO" (Play)
  */
 function parseDetailResponse(html) {
-    try {
-        var videoUrl = "";
-
-        if (html && typeof html === 'string') {
-            // Bước 1: Quét tìm tất cả các chuỗi có định dạng link kết thúc bằng .m3u8 trong HTML/Script của trang xem phim mới tải
-            var m3u8Match = html.match(/(https?:\/\/[^"']+\.m3u8[^"']*)/i);
-            
-            if (m3u8Match) {
-                videoUrl = m3u8Match[1].trim();
-            } else {
-                // Bước dự phòng: Nếu không tìm thấy, thử tìm link embed player (như player.phimapi.com...)
-                var embedMatch = html.match(/(https?:\/\/player[^"']+\/player\/\?url=[^"']+)/i);
-                if (embedMatch) {
-                    videoUrl = decodeURIComponent(embedMatch[1].split('url=')[1]);
-                } else if (html.startsWith("http://") || html.startsWith("https://")) {
-                    videoUrl = html.trim();
-                }
-            }
-        }
-
-        return JSON.stringify({
-            "url": videoUrl, 
-            "headers": {
-                "Referer": "https://phimvn2y.com/", 
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            },
-            "subtitles": []
-        });
-
-    } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
-    }
+    // Bạn cần dùng Regex để tìm ra link .m3u8 hoặc .mp4 ẩn trong mã HTML/Script của trang nguồn.
+    return JSON.stringify({
+        url: "https://cdn.example.com/video.m3u8", // Link stream video cuối cùng tìm được
+        headers: {
+            "Referer": "https://domain-phim-cua-ban.com" // Rất quan trọng! Nhiều web chống xem lén bằng cách check Referer. Điền domain trang nguồn vào đây để "qua mặt" chống hotlink.
+        },
+        subtitles: [] // Nếu trang nguồn có sub tách rời (.srt/.vtt), cào link bỏ vào đây
+        
+        // CÁC THAM SỐ NÂNG CAO (Bỏ cmt nếu dùng):
+        // isEmbed: false,     // Đổi thành true nếu link `url` ở trên chưa phải link video, mà là một link chứa iframe/ajax cần xử lý tiếp ở hàm dưới.
+        // postBody: "",       // Nếu cần gửi request dạng POST để lấy link thì điền body vào đây (ví dụ: "id=123&token=xyz")
+        // mimeType: "application/x-mpegURL" // Ép kiểu trình phát (Dùng khi link video không có đuôi .m3u8 rõ ràng)
+    });
 }
 
 function parseCategoriesResponse(html) { return "[]"; }
