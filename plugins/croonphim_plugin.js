@@ -19,8 +19,8 @@ function getManifest() {
 function getHomeSections() {
     return JSON.stringify([
         { "slug": "phim-le", "title": "Phim Lẻ", "type": "Horizontal" },
-        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Horizontal" },
         { "slug": "phim-bo", "title": "Phim Bộ", "type": "Horizontal" },
+        { "slug": "phim-ngan", "title": "Phim Ngắn", "type": "Horizontal" },
         { "slug": "motphim", "title": "Phim Mới", "type": "Grid" }
     ]);
 }
@@ -167,7 +167,7 @@ function parseMovieDetail(html) {
                 var totalEpisodes = 0;
 
                 if (pageMatch && pageMatch[1]) {
-                    var numMatch = pageMatch[1].match(new RegExp('(\\d+)'));
+                    var numMatch = pageMatch[1].match(/[\s\S]*?\|[\s\S]*?(\d+)[\s\S]*?\|[\s\S]*?(\d+)/i);
                     if (numMatch && numMatch[1]) {
                         totalEpisodes = parseInt(numMatch[1], 10);
                     }
