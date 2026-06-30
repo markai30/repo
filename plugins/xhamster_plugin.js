@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.3",             
         "baseUrl": "https://xhamster.com",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -88,21 +88,27 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        // ĐÃ SỬA: Chỉ bóc cụm nội dung bên trong thẻ <img> để không bị bẫy mất item không có data-src
-        // <a class="video-thumb__image-container role-pop thumb-image-container ist-trigger" data-role="thumb-link" href="https://xhamster.com/videos/old-vietnamese-couple-xhrKa7y" data-previewvideo="https://thumb-v6.cdnsolutions.media/a/jxVbbBQw9-aB339QzQ2MyQ/019/414/846/526x298.94.3.5.t.av1.mp4" data-previewvideo-fallback="https://thumb-v6.cdnsolutions.media/a/Ygw_noJSK_0aF8BdDaim_Q/019/414/846/526x298.94.3.5.t.mp4" aria-label="old vietnamese couple">
         
-        var regex = /class="video-thumb__image-container[\s\S]*?data-role="thumb-link"[\s\S]*?href="([\s\S]*?)"[\s\S]*?data-previewvideo="([\s\S]*?)"[\s\S+]*?aria-label="([\s\S]*?)"/i;
+        // ĐÃ SỬA: Thêm cờ g, sửa [\\s\\S+]*? thành [\\s\\S]*? và thêm khoảng trắng linh hoạt [^>]*
+        // <img data-role="thumb-preview-img" aria-hidden="true" class="tnum-1 thumb-image-container__image" src="https://ic-vt-nss.cdnsolutions.media/a/MzFkZTliZDVmNmY5ODA0NzZhYTI5ZTE1ZjNlOTEwOWQ/s(w:1280,h:720),webp/029/498/708/1280x720.17776802.jpg" srcset="https://ic-vt-nss.cdnsolutions.media/a/NDU3MDhlZTA1NTQyNjkzZGUzMmE5NzI1OGY2NDNkMDY/s(w:526,h:298),webp/029/498/708/1280x720.17776802.jpg" alt="I SHARE A BED WITH MY STEPSON AND I END UP FUCKING HIS DICK. ( PART 1 )">
+        var regex = /class="video-thumb__image-container[\s\S]*?data-role="thumb-link"[\s\S]*?href="([^"]+)"[\s\S]*?data-previewvideo="([^"]+)"[^>]*aria-label="([^"]+)"[\s\S]*?img\sdata-role="thumb-preview-img"[\s\S]*?src="([\s\S]*?)"/gi;
         var match;
         
         while ((match = regex.exec(html)) !== null) {
-            var title = match[3].trim();
             var id = match[1].trim();
-            var imgTagContent = match[2];
+            var title = match[3].trim();
+            var previewVideo = match[2]; // Đây là link video preview (.mp4)
+            var limg = match[4];
+
+            // LƯU Ý: Nếu trang web có ảnh thumb tĩnh dạng JPG, bạn nên viết thêm regex nhỏ bóc ở đây.
+            // Hiện tại nếu ép previewVideo vào posterUrl thì App sẽ không hiện được ảnh tĩnh.
+            var imgPlaceholder = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500"; // Ảnh tạm thời nếu không tìm thấy ảnh gốc
+
             items.push({
                 "id": id,          
                 "title": title, 
-                "posterUrl": imgTagContent,
-                "backdropUrl": imgTagContent
+                "posterUrl": limg, // Nên thay bằng link ảnh thực tế (.jpg/.png) nếu tìm được trong HTML
+                "backdropUrl": limg
             });
         }
 
@@ -111,9 +117,9 @@ function parseListResponse(html) {
 
         if (html) {
             var currentMatch = html.match(/page-button-link--active"[\s\S]*?>(\d+)<\/a>/i);
-            // <div class="page-limit-button page-limit-button--right"><div class="limit-gradient limit-gradient--right"></div> <!----><!----><a class="page-button-link " href="https://xhamster.com/categories/vietnamese/55">55</a><!----> <!----><!----></div>
             
-            var maxMatch = html.match(/class="page-limit-button page-limit-button--right"[\s\S]*?page-button-link[\s\S]*?href="[\s\S]*?>(\d+)<\/a>/i);
+            // ĐÃ SỬA: Cho phép khoảng trắng hoặc thuộc tính khác xuất hiện trước dấu ">" của thẻ <a>
+            var maxMatch = html.match(/class="page-limit-button page-limit-button--right"[\s\S]*?page-button-link[^>]*>(\d+)<\/a>/i);
 
             if (currentMatch && currentMatch[1]) {
                 currentPage = parseInt(currentMatch[1], 10);
