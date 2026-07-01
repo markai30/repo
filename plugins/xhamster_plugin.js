@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -85,41 +85,41 @@ function getUrlYears() { return ""; }
 function parseListResponse(html) {
     try {
         var items = [];
-        var pattern = /(?=<div[^>]*class="[^"]*thumb-list__item[^"]*")/g;
-        var splitItems = html.split(pattern).filter(Boolean);
-        
-        for (var j = 0; j < splitItems.length; j++) {
+var pattern = /(?=<div[^>]*class="[^"]*thumb-list__item[^"]*")/g;
+var splitItems = html.split(pattern).filter(Boolean);
+
+for (var j = 1; j < splitItems.length; j++) {
     var block = splitItems[j];
-    
-    // 1. Kiểm tra xem đoạn block này có thực sự chứa class của item không
-    // Điều này giúp loại bỏ ngay phần html mào đầu (Header/Menu)
-    if (block.indexOf('thumb-list__item') === -1) continue;
-
     var hrefMatch = block.match(/href="([^"]+)"/i);
-    if (!hrefMatch) continue; 
+    if (!hrefMatch) continue; // Bỏ qua nếu khối không chứa link
 
-    // 2. Lấy link ảnh trước để kiểm tra chất lượng item
-    var srcMatch = block.match(/img[\s\S]*?src="([^"]+)"/i);
-    
-    // Nếu block không có ảnh (hoặc là ô trống quảng cáo), bỏ qua không thêm vào danh sách
-    if (!srcMatch) continue; 
-    
     var id = hrefMatch[1].trim();
-    var posterUrl = srcMatch[1].trim();
+    
+    // ĐIỀU KIỆN 2: Đường dẫn id buộc phải chứa dạng "/videos/"
+    if (id.indexOf('/videos/') === -1) {
+        continue; // Loại bỏ nếu không đúng định dạng đường dẫn video
+    }
+
     var title = "";
     
-    // 3. Lấy tiêu đề
+    // Thử lấy title từ thuộc tính alt của ảnh trước
     var altMatch = block.match(/img[\s\S]*?alt="([^"]+)"/i);
     if (altMatch) {
         title = altMatch[1].trim();
     } else {
+        // Khử fallback sang aria-label nếu alt không tồn tại
         var labelMatch = block.match(/aria-label="([^"]+)"/i);
-        title = labelMatch ? labelMatch[1].trim() : "Video không tiêu đề";
+        title = labelMatch ? labelMatch[1].trim() : "";
     }
     
-    // Loại bỏ thêm trường hợp title quá ngắn hoặc trống rỗng sau khi trim
-    if (!title || title === "Video không tiêu đề") continue;
-
+    // ĐIỀU KIỆN 1: Nếu tiêu đề rỗng hoặc là "Video không tiêu đề" thì không gán vào items
+    if (!title || title === "Video không tiêu đề") {
+        continue; 
+    }
+    
+    var srcMatch = block.match(/img[\s\S]*?src="([^"]+)"/i);
+    var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
+    
     items.push({
         "id": id,          
         "title": title, 
