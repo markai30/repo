@@ -7,7 +7,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.3",             
+        "version": "1.4",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -172,7 +172,7 @@ function parseMovieDetail(html) {
     if (rmatch && rmatch[1]) { ldes = rmatch[1]; }   
      
     var streamUrl = "";
-    var iframeMatch = html.match(/id="jsVideoIframe"[\s\S]*?src="([^"]+)"|src="([^"]+)"[\s\S]*?id="jsVideoIframe"/i);
+    var iframeMatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
    	if (iframeMatch && iframeMatch[1]) { streamUrl = iframeMatch[1]; }
      
     return JSON.stringify({
@@ -228,7 +228,7 @@ if (document.readyState === 'loading') {
 }`;
 
 		var streamUrl = "";
-        var rmatch = html.match(/id="jsVideoIframe"[\s\S]*?src="([^"]+)"|src="([^"]+)"[\s\S]*?id="jsVideoIframe"/i);
+        var rmatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
    	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
    
         return JSON.stringify({
