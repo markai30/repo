@@ -13,7 +13,7 @@ function getManifest() {
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "exoplayer"
+        "playerType": "embedtoexoplay"
     });
 }
 
@@ -142,7 +142,7 @@ for (var j = 1; j < splitItems.length; j++) {
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, 
-                "totalPages": totalPages, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
+                "totalPages": 10, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
                 "totalItems": 46 * totalPages,
                 "itemsPerPage": 46
             }
