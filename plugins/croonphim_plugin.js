@@ -163,6 +163,7 @@ function parseMovieDetail(html) {
 
             if (movieUrl.indexOf("full") > -1) {
                 episodes.push({ "id": movieUrl, "slug": "1", "name": "Full Tập", "url": movieUrl });
+                linkfrist += movieUrl + "\r\n";
             } else {
                 var pageMatch = html.match(new RegExp('<span class="video-info-itemtitle">Thời lượng[\\s\\S]*?<div class="video-info-item">([\\s\\S]*?)<\\/div>', 'i'));
                 var totalEpisodes = 0;
