@@ -7,7 +7,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.6",             
+        "version": "1.8",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -207,9 +207,7 @@ function initCustomVideoFix() {
   const style = document.createElement('style');
   
   // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
-  var customcss = 'header, footer, #comments, .entry-actions, .entry-content, #related-posts, .mt-2 { display: none !important; }' +
-                  '.py-1 div.w-full { display: block !important; }' +
-                  'body { background: black; overflow: hidden; }';
+  var customcss = 'body { background: black; overflow: hidden; }';
                   
   style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
   document.head.appendChild(style);
