@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript & HTML Interactive Lab (Global HTML Var)</title>
+    <title>JavaScript & HTML Interactive Lab (Floating Controls)</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
         * {
@@ -90,6 +90,7 @@
             color: #fff;
         }
         
+        /* THANH ĐIỀU KHIỂN JS BAN ĐẦU */
         .js-controls {
             margin-top: 10px;
             display: flex;
@@ -98,6 +99,7 @@
             overflow-x: auto;
             padding-bottom: 5px;
             -webkit-overflow-scrolling: touch;
+            transition: all 0.2s ease;
         }
         .js-controls::-webkit-scrollbar { height: 4px; }
         .js-controls::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
@@ -121,7 +123,7 @@
             display: flex;
             flex-direction: column;
             height: 300px;
-            transition: all 0.2s ease-in-out;
+            position: relative;
         }
         .output-header {
             display: flex;
@@ -149,6 +151,7 @@
             line-height: 1.5;
             white-space: pre;
             -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px; /* Tránh bị panel nổi che chữ dòng cuối */
         }
         
         .log-item { margin-bottom: 6px; color: #ffffff; word-break: break-all; }
@@ -156,10 +159,11 @@
         .log-item.log-info { color: #5bc0de; }
         .log-item.log-return { color: #f1c40f; font-weight: bold; }
         
-        /* FULLSCREEN CONSOLE */
+        /* --- CHẾ ĐỘ FULLSCREEN CONSOLE BIẾN ĐỔI GIAO DIỆN --- */
         body.fullscreen-mode {
             height: 100vh;
             overflow: hidden;
+            padding: 10px;
         }
         body.fullscreen-mode h2,
         body.fullscreen-mode .url-bar,
@@ -170,12 +174,21 @@
             flex: 1;
             height: auto !important;
         }
+        
+        /* Đưa cụm điều khiển thành Floating Panel nằm góc dưới bên phải */
         body.fullscreen-mode .js-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: rgba(30, 30, 30, 0.9);
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); /* Làm mờ nhẹ nền phía sau panel */
+            max-width: calc(100% - 40px); /* Không để tràn màn hình dọc */
             margin-top: 0;
-            margin-bottom: 10px;
-            background: #111;
-            padding: 8px;
-            border-radius: 4px;
         }
 
         #sandbox { display: none; }
@@ -183,7 +196,7 @@
 </head>
 <body>
 
-    <h2>JavaScript & HTML Lab 5</h2>
+    <h2>JavaScript & HTML Lab 5.2</h2>
 
     <div class="url-bar">
         <input type="text" id="urlInput" value="https://greenxh.today/categories/vietnamese" placeholder="Nhập đường dẫn website..." />
@@ -235,14 +248,25 @@
 
             const GOOGLE_SCRIPT_PROXY = "https://script.google.com/macros/s/AKfycbwGOhlYMORQ0Rv45F54tfYgTfbLHeYQ04ulpQ5f6nMqV2Y_OgD9GGpTLSV4oGDCtGF70A/exec";
 
-            // TOÀN MÀN HÌNH
+            // --- 1. LẮNG NGHE ĐỒNG BỘ BIẾN HTML TOÀN CỤC NGAY KHI CÓ THAY ĐỔI ---
+            function syncGlobalHtml() {
+                window.html = $htmlInput.val();
+            }
+            $htmlInput.on('input blur change', syncGlobalHtml);
+            
+            // Khởi tạo biến html trống ban đầu
+            syncGlobalHtml();
+
+            // TOÀN MÀN HÌNH (Chuyển đổi vị trí thanh điều khiển linh hoạt)
             $('#btnToggleFullscreen').click(function() {
                 $('body').toggleClass('fullscreen-mode');
                 if ($('body').hasClass('fullscreen-mode')) {
                     $(this).text('[Thu nhỏ]');
-                    $('.output-panel').prepend($jsControlsBlock);
+                    // Đẩy thanh điều khiển ra ngoài body để cố định dạng Floating Fixed góc phải
+                    $('body').append($jsControlsBlock);
                 } else {
                     $(this).text('[Toàn màn hình]');
+                    // Mang trả về khu vực panel thiết kế ban đầu
                     $('.panel:last').append($jsControlsBlock);
                 }
             });
@@ -290,6 +314,7 @@
                 $.get(GOOGLE_SCRIPT_PROXY, { url: targetUrl }, function(htmlResponse) {
                     if (htmlResponse && !htmlResponse.startsWith("Lỗi:")) {
                         $htmlInput.val(htmlResponse);
+                        syncGlobalHtml(); // Đồng bộ ngay sau khi cào thành công
                         logToConsole('Cào và đồng bộ Source HTML thành công!', 'info');
                     } else {
                         logToConsole('Proxy báo lỗi: ' + htmlResponse, 'error');
@@ -324,14 +349,13 @@
                 else { $btnRunFunc.attr('disabled', 'disabled'); }
             });
 
-            // --- ENGINE THỰC THI JAVASCRIPT ---
+            // ENGINE THỰC THI JAVASCRIPT
             function executeEngine(runMode) {
                 let htmlCode = $htmlInput.val();
                 
-                // 1. Tạo biến 'html' chứa toàn bộ chuỗi text gốc trên phạm vi toàn cục (window)
-                window.html = htmlCode;
+                // Đảm bảo window.html luôn chính xác trước khi engine thông dịch chạy
+                syncGlobalHtml();
 
-                // 2. Render Sandbox an toàn (đã loại bỏ script độc hại)
                 if (htmlCode) {
                     let $cleanHtml = $('<div>').html(htmlCode);
                     $cleanHtml.find('script').remove();
@@ -354,7 +378,6 @@
                 }
 
                 try {
-                    // Inject đoạn mã thực thi, giữ ngữ cảnh $ và jQuery hướng vào sandbox
                     let interceptorJs = `(function($, jQuery){ console.info = function(msg) { window.customLogReturn(msg); }; ${executeCode} })(function(selector, context){ return jQuery(selector, context || '#sandbox'); }, function(selector, context){ return jQuery(selector, context || '#sandbox'); });`;
                     window.customLogReturn = function(val) { logToConsole(val, 'return'); };
                     window.eval(interceptorJs);
