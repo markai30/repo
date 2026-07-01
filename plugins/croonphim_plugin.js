@@ -13,7 +13,7 @@ function getManifest() {
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE",
-        "playerType": "embedtoexoplay"
+        "playerType": "exoplayer"
     });
 }
 
@@ -221,7 +221,7 @@ function parseDetailResponse(html) {
       
 
         return JSON.stringify({
-            "url": videoUrl, 
+            "url": videoUrl.replace("playlist","playlist_1080"), 
             headers: {
         	"Referer": "https://sportshots.pro",
         	"Origin": "https://sportshots.pro",
@@ -231,7 +231,7 @@ function parseDetailResponse(html) {
         });
 
     } catch (e) {
-        return JSON.stringify({ "url": "", "headers": {} });
+        return JSON.stringify({ "url": "https://cdn.phimhayok.net/filmhayok/episode/20260625/6a3d1f01000826b5bd8a2254/playlist_1080.m3u8", "headers": {} });
     }
 }
 
