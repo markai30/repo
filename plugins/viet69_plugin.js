@@ -7,7 +7,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.5",             
+        "version": "1.6",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -202,17 +202,16 @@ function parseMovieDetail(html) {
 
 function parseDetailResponse(html) {
     try {
-        // ĐÃ SỬA: Làm sạch đoạn mã JS injection, xóa bỏ phần ký tự rác bị dính ở đuôi
-        
-		var customJs = `
+        var customJs = `
 function initCustomVideoFix() {
   const style = document.createElement('style');
-  var customcss = `
-  	header,footer,#comments,.entry-actions,.entry-content,#related-posts,.mt-2{display:none!important}
-	.py-1 div.w-full{display:block!important}
-	body{background:black;overflow:hidden}
-  `;
-  style.innerHTML = customcss';
+  
+  // Dùng dấu nháy đơn và nối chuỗi bằng dấu cộng để dễ nhìn, không bị trùng backtick
+  var customcss = 'header, footer, #comments, .entry-actions, .entry-content, #related-posts, .mt-2 { display: none !important; }' +
+                  '.py-1 div.w-full { display: block !important; }' +
+                  'body { background: black; overflow: hidden; }';
+                  
+  style.innerHTML = customcss; // ĐÃ SỬA: Xóa dấu nháy đơn thừa
   document.head.appendChild(style);
   
   if (typeof jwplayer === "function") {
@@ -233,9 +232,10 @@ if (document.readyState === 'loading') {
   initCustomVideoFix();
 }`;
 
-		var streamUrl = "";
+        // Quét lấy link nhúng theo domain đã tối ưu
+        var streamUrl = "";
         var rmatch = html.match(/src="(https:\/\/emb\.cd-vs\.com\/embed\/[^"]+)"/i);
-   	    if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
+        if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
    
         return JSON.stringify({
             url: streamUrl,
