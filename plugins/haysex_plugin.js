@@ -7,7 +7,7 @@ function getManifest() {
         "id": "haysex",          
         "name": "HaySex",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.1",             
         "baseUrl": "https://phimsexsuong3x.net",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -220,34 +220,27 @@ function initCustomVideoFix() {
   const style = document.createElement('style');
   style.innerHTML = '';
   document.head.appendChild(style);
+  
+  const player = jwplayer("previewPlayer");
 
-  // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
-  const checkInterval = setInterval(() => {
-    const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
-    const video = document.querySelector('video');
-
-    // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
-    if (theaterButton && video) {
-      clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
-
-      // Xử lý nút Cinema mode
-      const buttonText = theaterButton.innerText || theaterButton.textContent || "";
-      if (buttonText.toLowerCase().includes('cinema mode')) {
-        theaterButton.click();
-        console.log("Đã kích hoạt Cinema mode thành công!");
-      }
-
-      // Xử lý bật tiếng video
-      if (video.muted) {
-        video.muted = false;
-        console.log("Đã mở tiếng video thành công!");
-      }
+// 2. Kiểm tra xem player có tồn tại và đang bị tắt tiếng hay không
+if (player && typeof player.getMute === "function") {
+    if (player.getMute()) {
+        player.setMute(false); // Bật tiếng (Bỏ chế độ Mute)
+        console.log("Đã bật tiếng video!");
+    } else {
+        console.log("Video đã có tiếng sẵn từ trước.");
     }
-  }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
 
-  // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
-  setTimeout(() => clearInterval(checkInterval), 10000);
+    // Tiện tay nếu bạn muốn đảm bảo âm thanh ở mức to nhất (ví dụ: 100%)
+    player.setVolume(100); 
+} else {
+    console.error("Không tìm thấy đối tượng JW Player hoặc player chưa sẵn sàng.");
 }
+
+
+}
+  // 2. Dùng setInterval để đợi trình phát video v0:480p:,1280x720:720p:,1920x10
 
 // Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
 if (document.readyState === 'loading') {
