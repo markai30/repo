@@ -1,5 +1,5 @@
 // =============================================================================
-// VAAPP Plugin - Xhamster (Bản vá chuẩn hóa theo cấu trúc Core mới nhất)
+// VAAPP Plugin - Xhamster
 // =============================================================================
 
 function getManifest() {
@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "2.0",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -16,10 +16,14 @@ function getManifest() {
         "playerType": "embedtoexoplay"
     });
 }
-
+//https://greenxh.today/best/weekly
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "categories/vietnamese", "title": "Việt Nam", "type": "Grid" }
+        { "slug": "categories/vietnamese", "title": "Việt Nam", "type": "Horizontal" },
+        { "slug": "categories/bus", "title": "Xe Bus", "type": "Horizontal" },
+        { "slug": "categories/uncensored", "title": "Không Che", "type": "Horizontal" },
+        { "slug": "best/weekly", "title": "Hay Trong Tuần", "type": "Horizontal" },
+        { "slug": "newest", "title": "Hàng Mới", "type": "Grid" },
     ]);
 }
 
@@ -80,9 +84,8 @@ function getUrlYears() { return ""; }
 
 function parseListResponse(html) {
     try {
-        // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item
-        var items = [];
-        
+        // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item    
+        /*
         // 1. Tách chuỗi HTML thành từng khối item nhỏ
         var itemRegex = /thumb-list__item[\s\S]*?(?=(?:thumb-list__item|$))/gi;
         var itemMatches = html.match(itemRegex) || [];
@@ -111,7 +114,35 @@ function parseListResponse(html) {
             }
             // Nếu không có cả href và label thì bỏ qua item lỗi này, chạy tiếp item sau chứ không làm sập hàm
         }
-
+		*/
+		var items = [];
+		var pattern = /(?=<div[^>]*class="[^"]*thumb-list__item[^"]*")/g;
+		var splitItems = html.split(pattern).filter(Boolean);
+		for(var j = 0;j < splitItems.length;j++){
+			var block = splitItems[j];
+			var hrefMatch = block.match(/href="([^"]+)"/i);
+            var labelMatch = block.match(/img[\s\S]*?alt="([^"]+)"/i);
+            var srcMatch = block.match(/img[\s\S]*?src="([^"]+)"/i);
+            var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
+            
+			if (hrefMatch && labelMatch) {
+                var id = hrefMatch[1].trim();
+                var title = labelMatch[1].trim();
+            }
+            else{
+            	var labelMatch = block.match(/aria-label="([^"]+)"/i);
+            	var id = hrefMatch[1].trim();
+                var title = labelMatch[1].trim();
+			}
+                items.push({
+                    "id": id,          
+                    "title": title, 
+                    "posterUrl": posterUrl, 
+                    "backdropUrl": posterUrl
+                });
+		}
+		
+		
         // 2. Tối ưu phần lấy Pagination
         var currentPage = 1;
         var totalPages = 1;
