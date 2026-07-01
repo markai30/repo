@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript & HTML Interactive Tester (Custom Console Color)</title>
+    <title>JavaScript & HTML 1.0</title>
     <!-- Nhúng thư viện jQuery chính thức -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
@@ -301,61 +301,71 @@
             });
 
             // --- 4. ENGINE THỰC THI JAVASCRIPT ---
-            function executeEngine(runMode) {
-                let htmlCode = $htmlInput.val();
-                $sandbox.html(htmlCode);
+            // --- 4. ENGINE THỰC THI JAVASCRIPT ---
+function executeEngine(runMode) {
+    let htmlCode = $htmlInput.val();
+    
+    // BIỆN PHÁP BẢO VỆ: Loại bỏ tất cả thẻ <script> có trong HTML cào về để tránh bị kích hoạt chuyển hướng quảng cáo
+    if (htmlCode) {
+        // Tạo một DOM ảo để lọc bỏ script một cách an toàn
+        let $cleanHtml = $('<div>').html(htmlCode);
+        $cleanHtml.find('script').remove(); // Xóa sạch mọi thẻ script ẩn
+        $sandbox.html($cleanHtml.html());
+    } else {
+        $sandbox.empty();
+    }
 
-                let jsCode = $jsInput.val();
-                
-                window.console.log = function(...args) {
-                    logToConsole(args.length > 1 ? args : args[0]);
-                    nativeLog.apply(console, args);
-                };
-                window.console.error = function(...args) {
-                    logToConsole(args.length > 1 ? args : args[0], 'error');
-                    nativeError.apply(console, args);
-                };
+    let jsCode = $jsInput.val();
+    
+    window.console.log = function(...args) {
+        logToConsole(args.length > 1 ? args : args[0]);
+        nativeLog.apply(console, args);
+    };
+    window.console.error = function(...args) {
+        logToConsole(args.length > 1 ? args : args[0], 'error');
+        nativeError.apply(console, args);
+    };
 
-                let executeCode = '';
+    let executeCode = '';
 
-                if (runMode === 'single') {
-                    let selectedFunc = $functionSelect.val();
-                    logToConsole(`--- Bắt đầu chạy hàm: ${selectedFunc}() ---`, 'info');
-                    
-                    executeCode = `
-                        ${jsCode}
-                        \n;try { 
-                            let result = ${selectedFunc}(); 
-                            if(result !== undefined) {
-                                console.info(result);
-                            }
-                        } catch(err) { 
-                            console.error(err.message); 
-                        }
-                    `;
-                } else {
-                    logToConsole('--- Bắt đầu chạy toàn bộ JavaScript ---', 'info');
-                    executeCode = jsCode;
+    if (runMode === 'single') {
+        let selectedFunc = $functionSelect.val();
+        logToConsole(`--- Bắt đầu chạy hàm: ${selectedFunc}() ---`, 'info');
+        
+        executeCode = `
+            ${jsCode}
+            \n;try { 
+                let result = ${selectedFunc}(); 
+                if(result !== undefined) {
+                    console.info(result);
                 }
-
-                try {
-                    let interceptorJs = `
-                        (function($, jQuery){
-                            console.info = function(msg) { window.customLogReturn(msg); };
-                            ${executeCode}
-                        })(function(selector, context){ 
-                            return jQuery(selector, context || '#sandbox'); 
-                        }, function(selector, context){ 
-                            return jQuery(selector, context || '#sandbox'); 
-                        });
-                    `;
-                    
-                    window.customLogReturn = function(val) { logToConsole(val, 'return'); };
-                    window.eval(interceptorJs);
-                } catch (error) {
-                    logToConsole(error.name + ': ' + error.message, 'error');
-                }
+            } catch(err) { 
+                console.error(err.message); 
             }
+        `;
+    } else {
+        logToConsole('--- Bắt đầu chạy toàn bộ JavaScript ---', 'info');
+        executeCode = jsCode;
+    }
+
+    try {
+        let interceptorJs = `
+            (function($, jQuery){
+                console.info = function(msg) { window.customLogReturn(msg); };
+                ${executeCode}
+            })(function(selector, context){ 
+                return jQuery(selector, context || '#sandbox'); 
+            }, function(selector, context){ 
+                return jQuery(selector, context || '#sandbox'); 
+            });
+        `;
+        
+        window.customLogReturn = function(val) { logToConsole(val, 'return'); };
+        window.eval(interceptorJs);
+    } catch (error) {
+        logToConsole(error.name + ': ' + error.message, 'error');
+    }
+}
 
             $('#btnRunAll').click(function() { executeEngine('all'); });
             $btnRunFunc.click(function() { executeEngine('single'); });
