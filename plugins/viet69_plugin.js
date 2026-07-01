@@ -7,7 +7,7 @@ function getManifest() {
         "id": "viet69",          
         "name": "Viet69",
         "description": "XXX Hay",
-        "version": "1.4",             
+        "version": "1.5",             
         "baseUrl": "https://viet69z.me",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -203,10 +203,16 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         // ĐÃ SỬA: Làm sạch đoạn mã JS injection, xóa bỏ phần ký tự rác bị dính ở đuôi
+        
 		var customJs = `
 function initCustomVideoFix() {
   const style = document.createElement('style');
-  style.innerHTML = '';
+  var customcss = `
+  	header,footer,#comments,.entry-actions,.entry-content,#related-posts,.mt-2{display:none!important}
+	.py-1 div.w-full{display:block!important}
+	body{background:black;overflow:hidden}
+  `;
+  style.innerHTML = customcss';
   document.head.appendChild(style);
   
   if (typeof jwplayer === "function") {
