@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript & HTML Interactive Lab (Pro Console)</title>
+    <title>JavaScript & HTML Interactive Lab (Global HTML Var)</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
         * {
@@ -54,7 +54,6 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background-color: #3498db; color: white; }
         .btn-success { background-color: #2ecc71; color: white; }
-        .btn-secondary { background-color: #555; color: white; }
 
         .main-layout {
             display: flex;
@@ -91,7 +90,6 @@
             color: #fff;
         }
         
-        /* THANH ĐIỀU KHIỂN JS: Hỗ trợ cuộn mượt theo chuột/cảm ứng nếu thiếu chỗ */
         .js-controls {
             margin-top: 10px;
             display: flex;
@@ -101,7 +99,6 @@
             padding-bottom: 5px;
             -webkit-overflow-scrolling: touch;
         }
-        /* Ẩn thanh cuộn xấu xí của khối controls nhưng vẫn cho cuộn chuột */
         .js-controls::-webkit-scrollbar { height: 4px; }
         .js-controls::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
 
@@ -115,7 +112,7 @@
             flex-shrink: 0;
         }
 
-        /* KHU VỰC CONSOLE OUTPUT */
+        /* CONSOLE OUTPUT */
         .output-panel {
             background: #000000;
             border: 1px solid #333;
@@ -159,7 +156,7 @@
         .log-item.log-info { color: #5bc0de; }
         .log-item.log-return { color: #f1c40f; font-weight: bold; }
         
-        /* CHẾ ĐỘ FULLSCREEN CONSOLE */
+        /* FULLSCREEN CONSOLE */
         body.fullscreen-mode {
             height: 100vh;
             overflow: hidden;
@@ -186,7 +183,7 @@
 </head>
 <body>
 
-    <h2 id="mainTitle">JavaScript & HTML Lab 3</h2>
+    <h2>JavaScript & HTML Lab 5</h2>
 
     <div class="url-bar">
         <input type="text" id="urlInput" value="https://greenxh.today/categories/vietnamese" placeholder="Nhập đường dẫn website..." />
@@ -194,7 +191,6 @@
     </div>
 
     <div class="main-layout">
-        <!-- Chống tự động viết hoa, sửa từ bằng autocapitalize và autocorrect -->
         <div class="panel">
             <div class="panel-title">Mã nguồn HTML (Vùng Sandbox)</div>
             <textarea id="htmlInput" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Mã nguồn HTML sẽ xuất hiện ở đây..."></textarea>
@@ -204,7 +200,6 @@
             <div class="panel-title">Mã JavaScript (Auto-Format JSON Return)</div>
             <textarea id="jsInput" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="// Viết hoặc dán mã JS vào đây..."></textarea>
             
-            <!-- Vùng điều khiển JS (Sẽ được giữ lại kể cả khi mở toàn màn hình) -->
             <div class="js-controls" id="jsControlsBlock">
                 <button class="btn btn-success" id="btnRunAll">Chạy toàn bộ JS</button>
                 <select id="functionSelect">
@@ -240,16 +235,14 @@
 
             const GOOGLE_SCRIPT_PROXY = "https://script.google.com/macros/s/AKfycbwGOhlYMORQ0Rv45F54tfYgTfbLHeYQ04ulpQ5f6nMqV2Y_OgD9GGpTLSV4oGDCtGF70A/exec";
 
-            // --- XỬ LÝ TOÀN MÀN HÌNH ---
+            // TOÀN MÀN HÌNH
             $('#btnToggleFullscreen').click(function() {
                 $('body').toggleClass('fullscreen-mode');
                 if ($('body').hasClass('fullscreen-mode')) {
                     $(this).text('[Thu nhỏ]');
-                    // Đưa cụm điều khiển hàm xuống đầu ô console để dễ chọn và chạy
                     $('.output-panel').prepend($jsControlsBlock);
                 } else {
                     $(this).text('[Toàn màn hình]');
-                    // Trả cụm điều khiển hàm về lại panel bên phải ban đầu
                     $('.panel:last').append($jsControlsBlock);
                 }
             });
@@ -287,7 +280,7 @@
             const nativeError = console.error;
             $('#btnClearConsole').click(function() { $consoleLog.empty(); });
 
-            // --- CÀO MÃ NGUỒN ---
+            // CÀO MÃ NGUỒN
             $('#btnFetch').click(function() {
                 let targetUrl = $('#urlInput').val().trim();
                 if (!targetUrl) { alert('Vui lòng nhập URL.'); return; }
@@ -306,7 +299,7 @@
                 });
             });
 
-            // --- PHÂN TÍCH HÀM ---
+            // PHÂN TÍCH HÀM
             $jsInput.on('input blur', function() {
                 let jsCode = $(this).val();
                 let funcRegex = /(?:function\s+([a-zA-Z0-9_$]+)|(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>))/g;
@@ -331,9 +324,14 @@
                 else { $btnRunFunc.attr('disabled', 'disabled'); }
             });
 
-            // --- ENGINE THỰC THI ---
+            // --- ENGINE THỰC THI JAVASCRIPT ---
             function executeEngine(runMode) {
                 let htmlCode = $htmlInput.val();
+                
+                // 1. Tạo biến 'html' chứa toàn bộ chuỗi text gốc trên phạm vi toàn cục (window)
+                window.html = htmlCode;
+
+                // 2. Render Sandbox an toàn (đã loại bỏ script độc hại)
                 if (htmlCode) {
                     let $cleanHtml = $('<div>').html(htmlCode);
                     $cleanHtml.find('script').remove();
@@ -356,6 +354,7 @@
                 }
 
                 try {
+                    // Inject đoạn mã thực thi, giữ ngữ cảnh $ và jQuery hướng vào sandbox
                     let interceptorJs = `(function($, jQuery){ console.info = function(msg) { window.customLogReturn(msg); }; ${executeCode} })(function(selector, context){ return jQuery(selector, context || '#sandbox'); }, function(selector, context){ return jQuery(selector, context || '#sandbox'); });`;
                     window.customLogReturn = function(val) { logToConsole(val, 'return'); };
                     window.eval(interceptorJs);
