@@ -2,6 +2,13 @@
     "version": 1,
     "plugins": [
         {
+            "id": "haysex",
+            "name": "Haysex",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/haysex_plugin.js",
+            "iconUrl": "https://sexmupxinh.net/static/img/logo.png"
+        },
+        {
             "id": "xhamster",
             "name": "Xamster",
             "version": "1.0",
