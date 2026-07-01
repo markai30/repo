@@ -211,17 +211,16 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
-        var getlink = html.match(/id="streaming-sv"[\s\S]*?data-link="([\s\S]*?)"/i);
-        
+        var getlink = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
         if (getlink && getlink[1]) {
             videoUrl = getlink[1];
         }
         
         // ĐÃ SỬA: Xóa bỏ hoàn toàn hàm alert() gây treo App
-        var decodedUrl = videoUrl ? decodeURIComponent(videoUrl) : "";
+      
 
         return JSON.stringify({
-            "url": decodedUrl, 
+            "url": videoUrl, 
             headers: {
         	"Referer": "https://sportshots.pro",
         	"Origin": "https://sportshots.pro",
