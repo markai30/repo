@@ -7,13 +7,13 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.1",             
+        "version": "1.5",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
         "isAdult": true,
         "type": "VIDEO",
-        "playerType": "embedtoexoplay"
+        "playerType": "auto"
     });
 }
 
@@ -210,45 +210,35 @@ function parseDetailResponse(html) {
         if (rmatch && rmatch[1]) { streamUrl = rmatch[1]; }
         
         var customJs = `
-function initCustomVideoFix() {
-  // 1. Chèn CSS dọn dẹp giao diện (ẩn footer, sidebar, navbar...)
-  const style = document.createElement('style');
-  style.innerHTML = '';
-  document.head.appendChild(style);
 
-  // 2. Dùng setInterval để đợi trình phát video và nút bấm tải xong hoàn toàn
-  const checkInterval = setInterval(() => {
-    const theaterButton = document.querySelector('.icon-theater.vjs-control.vjs-button');
-    const video = document.querySelector('video');
+function initVideoFix() {
+    const checkInterval = setInterval(() => {
+        const video = document.querySelector('video');
+        if (video) {
+            clearInterval(checkInterval);
+            
+            // Hàm xử lý chính
+            const runTrigger = () => {
+                video.muted = false;
+                if (video.paused) video.play().catch(() => {});
+                
+                // Mở Fullscreen
+                if (video.requestFullscreen) video.requestFullscreen();
+                else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+                else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+            };
 
-    // Chỉ xử lý khi cả nút bấm và thẻ video đều đã xuất hiện trên trang
-    if (theaterButton && video) {
-      clearInterval(checkInterval); // Tìm thấy rồi thì dừng vòng lặp kiểm tra
-
-      // Xử lý nút Cinema mode
-      const buttonText = theaterButton.innerText || theaterButton.textContent || "";
-      if (buttonText.toLowerCase().includes('cinema mode')) {
-        theaterButton.click();
-        console.log("Đã kích hoạt Cinema mode thành công!");
-      }
-
-      // Xử lý bật tiếng video
-      if (video.muted) {
-        video.muted = false;
-        console.log("Đã mở tiếng video thành công!");
-      }
-    }
-  }, 200); // Cứ mỗi 0.2 giây sẽ kiểm tra lại một lần
-
-  // Bảo hiểm: Tự động dừng kiểm tra sau 10 giây nếu trang bị lỗi không tải được video
-  setTimeout(() => clearInterval(checkInterval), 10000);
+            // Gắn vào sự kiện chạm màn hình của app
+            document.addEventListener('click', runTrigger, { once: true });
+            document.addEventListener('touchstart', runTrigger, { once: true });
+        }
+    }, 200);
+    setTimeout(() => clearInterval(checkInterval), 10000);
 }
-
-// Kiểm tra trạng thái trang để kích hoạt hàm an toàn nhất
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCustomVideoFix);
+    document.addEventListener('DOMContentLoaded', initVideoFix);
 } else {
-  initCustomVideoFix();
+    initVideoFix();
 }
 `;
 
