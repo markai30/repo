@@ -8,12 +8,12 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.1",             
+        "version": "1.7",             
         "baseUrl": "https://sportshots.pro",
         "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE",
-        "playerType": "exoplayer"
+        "playerType": "embed"
     });
 }
 
@@ -212,16 +212,21 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
+        /*
         var getlink = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
         if (getlink && getlink[1]) {
             videoUrl = getlink[1];
         }
-        
+        */
+        var getlink = html.match(/class="playactive" href="(https?:[^"]*)"/i);
+        if (getlink && getlink[1]) {
+            videoUrl = getlink[1];
+        }
         // ĐÃ SỬA: Xóa bỏ hoàn toàn hàm alert() gây treo App
       
 
         return JSON.stringify({
-            "url": videoUrl.replace("playlist","playlist_1080"), 
+            "url": videoUrl, 
             headers: {
         	"Referer": "https://sportshots.pro",
         	"Origin": "https://sportshots.pro",
