@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript & HTML 2</title>
+    <title>JavaScript & HTML Interactive Lab (Pro Console)</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
         * {
@@ -13,7 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #121212; /* Chuyển hẳn sang tối cho đồng bộ giao diện của bạn */
+            background-color: #121212;
             color: #e0e0e0;
             padding: 15px;
             display: flex;
@@ -32,7 +32,6 @@
             background: #1e1e1e;
             padding: 10px;
             border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .url-bar input {
             flex: 1;
@@ -49,24 +48,21 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
             white-space: nowrap;
         }
+        .btn:active { transform: scale(0.98); }
         .btn-primary { background-color: #3498db; color: white; }
-        .btn-primary:hover { background-color: #2980b9; }
         .btn-success { background-color: #2ecc71; color: white; }
-        .btn-success:hover { background-color: #27ae60; }
+        .btn-secondary { background-color: #555; color: white; }
 
         .main-layout {
             display: flex;
             gap: 15px;
             margin-bottom: 15px;
         }
-        /* Tự động chuyển sang 1 cột nếu màn hình quá nhỏ để tránh đè chữ */
         @media (max-width: 768px) {
-            .main-layout {
-                flex-direction: column;
-            }
+            .main-layout { flex-direction: column; }
         }
         .panel {
             flex: 1;
@@ -75,7 +71,6 @@
             background: #1e1e1e;
             border-radius: 6px;
             padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .panel-title {
             font-weight: bold;
@@ -85,7 +80,7 @@
         }
         textarea {
             width: 100%;
-            height: 200px; /* Định kích thước cố định vừa phải cho ô nhập */
+            height: 200px;
             resize: vertical;
             padding: 10px;
             font-family: 'Courier New', Courier, monospace;
@@ -95,29 +90,32 @@
             background-color: #252525;
             color: #fff;
         }
-        textarea:focus {
-            outline: none;
-            border-color: #3498db;
-        }
         
+        /* THANH ĐIỀU KHIỂN JS: Hỗ trợ cuộn mượt theo chuột/cảm ứng nếu thiếu chỗ */
         .js-controls {
             margin-top: 10px;
             display: flex;
             gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
         }
+        /* Ẩn thanh cuộn xấu xí của khối controls nhưng vẫn cho cuộn chuột */
+        .js-controls::-webkit-scrollbar { height: 4px; }
+        .js-controls::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
         select {
             padding: 10px;
             border: 1px solid #333;
             background-color: #2a2a2a;
             color: #fff;
             border-radius: 4px;
-            flex: 1;
-            min-width: 150px;
+            min-width: 180px;
+            flex-shrink: 0;
         }
 
-        /* --- SỬA CSS KHU VỰC CONSOLE: CHỐNG TRÀN VÀ ĐÈ GIAO DIỆN --- */
+        /* KHU VỰC CONSOLE OUTPUT */
         .output-panel {
             background: #000000;
             border: 1px solid #333;
@@ -125,27 +123,35 @@
             padding: 15px;
             display: flex;
             flex-direction: column;
-            height: 300px; /* Chiều cao cố định chuẩn */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            height: 300px;
+            transition: all 0.2s ease-in-out;
         }
         .output-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             color: #888;
             font-size: 12px;
             margin-bottom: 8px;
             border-bottom: 1px solid #222;
             padding-bottom: 5px;
         }
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .action-link { cursor: pointer; font-weight: bold; }
+        .action-link:hover { text-decoration: underline; }
+
         .output-log {
             flex: 1;
-            overflow-y: auto; /* Kích hoạt thanh cuộn dọc độc lập */
-            overflow-x: auto; /* Kích hoạt thanh cuộn ngang độc lập cho JSON dài */
+            overflow-y: auto;
+            overflow-x: auto;
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
             line-height: 1.5;
             white-space: pre;
-            -webkit-overflow-scrolling: touch; /* Giúp vuốt mượt mà trên máy tính bảng/điện thoại */
+            -webkit-overflow-scrolling: touch;
         }
         
         .log-item { margin-bottom: 6px; color: #ffffff; word-break: break-all; }
@@ -153,12 +159,34 @@
         .log-item.log-info { color: #5bc0de; }
         .log-item.log-return { color: #f1c40f; font-weight: bold; }
         
+        /* CHẾ ĐỘ FULLSCREEN CONSOLE */
+        body.fullscreen-mode {
+            height: 100vh;
+            overflow: hidden;
+        }
+        body.fullscreen-mode h2,
+        body.fullscreen-mode .url-bar,
+        body.fullscreen-mode .main-layout {
+            display: none !important;
+        }
+        body.fullscreen-mode .output-panel {
+            flex: 1;
+            height: auto !important;
+        }
+        body.fullscreen-mode .js-controls {
+            margin-top: 0;
+            margin-bottom: 10px;
+            background: #111;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
         #sandbox { display: none; }
     </style>
 </head>
 <body>
 
-    <h2>JavaScript & HTML Lab (Custom Google Proxy)</h2>
+    <h2 id="mainTitle">JavaScript & HTML Lab 3</h2>
 
     <div class="url-bar">
         <input type="text" id="urlInput" value="https://greenxh.today/categories/vietnamese" placeholder="Nhập đường dẫn website..." />
@@ -166,16 +194,18 @@
     </div>
 
     <div class="main-layout">
+        <!-- Chống tự động viết hoa, sửa từ bằng autocapitalize và autocorrect -->
         <div class="panel">
             <div class="panel-title">Mã nguồn HTML (Vùng Sandbox)</div>
-            <textarea id="htmlInput" placeholder="Mã nguồn HTML sẽ xuất hiện ở đây..."></textarea>
+            <textarea id="htmlInput" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Mã nguồn HTML sẽ xuất hiện ở đây..."></textarea>
         </div>
 
         <div class="panel">
             <div class="panel-title">Mã JavaScript (Auto-Format JSON Return)</div>
-            <textarea id="jsInput" placeholder="// Viết hoặc dán mã JS vào đây..."></textarea>
+            <textarea id="jsInput" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="// Viết hoặc dán mã JS vào đây..."></textarea>
             
-            <div class="js-controls">
+            <!-- Vùng điều khiển JS (Sẽ được giữ lại kể cả khi mở toàn màn hình) -->
+            <div class="js-controls" id="jsControlsBlock">
                 <button class="btn btn-success" id="btnRunAll">Chạy toàn bộ JS</button>
                 <select id="functionSelect">
                     <option value="">-- Chọn hàm cụ thể --</option>
@@ -188,7 +218,10 @@
     <div class="output-panel">
         <div class="output-header">
             <span>CONSOLE OUTPUT</span>
-            <span style="cursor:pointer; color: #ff6b6b;" id="btnClearConsole">[Xóa Console]</span>
+            <div class="header-actions">
+                <span class="action-link" style="color: #3498db;" id="btnToggleFullscreen">[Toàn màn hình]</span>
+                <span class="action-link" style="color: #ff6b6b;" id="btnClearConsole">[Xóa Console]</span>
+            </div>
         </div>
         <div class="output-log" id="consoleLog"></div>
     </div>
@@ -203,8 +236,23 @@
             const $functionSelect = $('#functionSelect');
             const $btnRunFunc = $('#btnRunFunc');
             const $sandbox = $('#sandbox');
+            const $jsControlsBlock = $('#jsControlsBlock');
 
             const GOOGLE_SCRIPT_PROXY = "https://script.google.com/macros/s/AKfycbwGOhlYMORQ0Rv45F54tfYgTfbLHeYQ04ulpQ5f6nMqV2Y_OgD9GGpTLSV4oGDCtGF70A/exec";
+
+            // --- XỬ LÝ TOÀN MÀN HÌNH ---
+            $('#btnToggleFullscreen').click(function() {
+                $('body').toggleClass('fullscreen-mode');
+                if ($('body').hasClass('fullscreen-mode')) {
+                    $(this).text('[Thu nhỏ]');
+                    // Đưa cụm điều khiển hàm xuống đầu ô console để dễ chọn và chạy
+                    $('.output-panel').prepend($jsControlsBlock);
+                } else {
+                    $(this).text('[Toàn màn hình]');
+                    // Trả cụm điều khiển hàm về lại panel bên phải ban đầu
+                    $('.panel:last').append($jsControlsBlock);
+                }
+            });
 
             function logToConsole(message, type = 'log') {
                 let extraClass = '';
@@ -269,10 +317,12 @@
                     if (funcName && !functions.includes(funcName)) { functions.push(funcName); }
                 }
 
+                let currentSelected = $functionSelect.val();
                 $functionSelect.html('<option value="">-- Chọn hàm cụ thể --</option>');
                 if (functions.length > 0) {
                     functions.forEach(f => { $functionSelect.append(`<option value="${f}">${f}()</option>`); });
                 }
+                if (functions.includes(currentSelected)) { $functionSelect.val(currentSelected); }
                 $functionSelect.trigger('change');
             });
 
