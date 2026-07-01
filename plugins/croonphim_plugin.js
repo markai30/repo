@@ -8,12 +8,12 @@ function getManifest() {
         "id": "croonphim",          
         "name": "Croon Phim",
         "description": "Nguồn xem phim Online ổn định",
-        "version": "1.7",             
-        "baseUrl": "https://sportshots.pro",
-        "iconUrl": "https://sportshots.pro/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
+        "version": "1.1",             
+        "baseUrl": "https://crimescenesolutions.co.za",
+        "iconUrl": "https://crimescenesolutions.co.za/wp-content/uploads/2026/04/phimhayok-io-fav.jpg", 
         "isEnabled": true,
         "type": "MOVIE",
-        "playerType": "embed"
+        "playerType": "exoplayer"
     });
 }
 
@@ -55,19 +55,19 @@ function getUrlList(slug, filtersJson) {
     var page = filters.page || 1;
     
     if (slug === "hanh-dong" || slug === "kinh-di" || slug === "phim-18" || slug === "hai-huoc" || slug === "chien-tranh" || slug === "hoat-hinh" || slug === "vien-tuong") {
-        return "https://sportshots.pro/page/" + page + "/?s=&genres=" + slug;
+        return "https://crimescenesolutions.co.za/page/" + page + "/?s=&genres=" + slug;
     }
-    return "https://sportshots.pro/page/" + page + "/?s=&categories=" + slug;
+    return "https://crimescenesolutions.co.za/page/" + page + "/?s=&categories=" + slug;
 }
 
 function getUrlSearch(keyword, filtersJson) {
-    return "https://sportshots.pro/?s=" + encodeURIComponent(keyword);
+    return "https://crimescenesolutions.co.za/?s=" + encodeURIComponent(keyword);
 }
 
 function getUrlDetail(slug) {
     if (!slug) return "";
     if (slug.indexOf('http') === 0) return slug;
-    return "https://sportshots.pro/" + slug;
+    return "https://crimescenesolutions.co.za/" + slug;
 }
 
 function getUrlCategories() { return ""; }
@@ -212,24 +212,26 @@ function parseMovieDetail(html) {
 function parseDetailResponse(html) {
     try {
         var videoUrl = "";
-        /*
+       
         var getlink = html.match(/id="streaming-sv"[^>]*?data-link="(https?:[^"]*)"/i);
         if (getlink && getlink[1]) {
             videoUrl = getlink[1];
         }
-        */
+        
+        /*
         var getlink = html.match(/class="playactive" href="(https?:[^"]*)"/i);
         if (getlink && getlink[1]) {
             videoUrl = getlink[1];
         }
+        */
         // ĐÃ SỬA: Xóa bỏ hoàn toàn hàm alert() gây treo App
       
 
         return JSON.stringify({
-            "url": videoUrl, 
+            "url": videoUrl.replace("playlist","playlist_1080"), 
             headers: {
-        	"Referer": "https://sportshots.pro",
-        	"Origin": "https://sportshots.pro",
+        	"Referer": "https://crimescenesolutions.co.za",
+        	"Origin": "https://crimescenesolutions.co.za",
         	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
    		 },
             "subtitles": []
