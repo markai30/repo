@@ -7,7 +7,7 @@ function getManifest() {
         "id": "xhamster",          
         "name": "Xhamster",
         "description": "XXX Hay",
-        "version": "1.0",             
+        "version": "1.7",             
         "baseUrl": "https://greenxh.today",
         "iconUrl": "https://static.cdnsolutions.media/xh-desktop/images/favicon/favicon-v2-256x256.ico", 
         "isEnabled": true,
@@ -19,7 +19,11 @@ function getManifest() {
 
 function getHomeSections() {
     return JSON.stringify([
-        { "slug": "categories/vietnamese", "title": "Việt Nam", "type": "Grid" }
+        { "slug": "categories/vietnamese", "title": "Việt Nam", "type": "Horizontal" },
+        { "slug": "categories/bus", "title": "Xe Bus", "type": "Horizontal" },
+        { "slug": "categories/uncensored", "title": "Không Che", "type": "Horizontal" },
+        { "slug": "best/weekly", "title": "Hay Trong Tuần", "type": "Horizontal" },
+        { "slug": "newest", "title": "Hàng Mới", "type": "Grid" },
     ]);
 }
 
@@ -80,54 +84,65 @@ function getUrlYears() { return ""; }
 
 function parseListResponse(html) {
     try {
-        // ĐÃ SỬA: Sửa Regex chính, chỉ quét đến hết thẻ <a> để lấy thông tin cơ bản, tránh bị bẫy nuốt item
         var items = [];
-        
-        // 1. Tách chuỗi HTML thành từng khối item nhỏ
-        var itemRegex = /thumb-list__item[\s\S]*?(?=(?:thumb-list__item|$))/gi;
-        var itemMatches = html.match(itemRegex) || [];
+var pattern = /(?=<div[^>]*class="[^"]*thumb-list__item[^"]*")/g;
+var splitItems = html.split(pattern).filter(Boolean);
 
-        for (var i = 0; i < itemMatches.length; i++) {
-            var itemHtml = itemMatches[i];
-            
-            var hrefMatch = itemHtml.match(/href="([^"]+)"/i);
-            var labelMatch = itemHtml.match(/aria-label="([^"]+)"/i);
-            var srcMatch = itemHtml.match(/img[\s\S]*?src="([^"]+)"/i);
+for (var j = 1; j < splitItems.length; j++) {
+    var block = splitItems[j];
+    var hrefMatch = block.match(/href="([^"]+)"/i);
+    if (!hrefMatch) continue; // Bỏ qua nếu khối không chứa link
 
-            // Chỉ thêm vào danh sách nếu THỰC SỰ có ID (href) và Tiêu đề (label)
-            if (hrefMatch && labelMatch) {
-                var id = hrefMatch[1].trim();
-                var title = labelMatch[1].trim();
-                
-                // Kiểm tra xem có ảnh không, nếu không có thì dùng ảnh mặc định (Fallback)
-                var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
+    var id = hrefMatch[1].trim();
+    
+    // ĐIỀU KIỆN 2: Đường dẫn id buộc phải chứa dạng "/videos/"
+    if (id.indexOf('/videos/') === -1) {
+        continue; // Loại bỏ nếu không đúng định dạng đường dẫn video
+    }
 
-                items.push({
-                    "id": id,          
-                    "title": title, 
-                    "posterUrl": posterUrl, 
-                    "backdropUrl": posterUrl
-                });
-            }
-            // Nếu không có cả href và label thì bỏ qua item lỗi này, chạy tiếp item sau chứ không làm sập hàm
-        }
-
-        // 2. Tối ưu phần lấy Pagination
+    var title = "";
+    
+    // Thử lấy title từ thuộc tính alt của ảnh trước
+    var altMatch = block.match(/img[\s\S]*?alt="([^"]+)"/i);
+    if (altMatch) {
+        title = altMatch[1].trim();
+    } else {
+        // Khử fallback sang aria-label nếu alt không tồn tại
+        var labelMatch = block.match(/aria-label="([^"]+)"/i);
+        title = labelMatch ? labelMatch[1].trim() : "";
+    }
+    
+    // ĐIỀU KIỆN 1: Nếu tiêu đề rỗng hoặc là "Video không tiêu đề" thì không gán vào items
+    if (!title || title === "Video không tiêu đề") {
+        continue; 
+    }
+    
+    var srcMatch = block.match(/img[\s\S]*?src="([^"]+)"/i);
+    var posterUrl = srcMatch ? srcMatch[1].trim() : "https://ic-vt-nss.cdnsolutions.media/a/YjgwNDg0MGRkZWVjZjQ1ZGVhZjc5MzQ0ZWJkMDlhOTA/s(w:1280,h:720),webp/026/522/500/1280x720.17475568.jpg";
+    
+    items.push({
+        "id": id,          
+        "title": title, 
+        "posterUrl": posterUrl, 
+        "backdropUrl": posterUrl
+    });
+}
+		
         var currentPage = 1;
         var totalPages = 1;
 
-        // Dùng cụm ngoặc tròn ([^>]+) thay vì [\s\S]*? để Regex chạy nhanh hơn, không bị backtracking quá đà
         var currentMatch = html.match(/page-button-link--active[^>]*>(\d+)/i);
         var maxMatch = html.match(/page-limit-button--right[^>]*page-button-link[^>]*>(\d+)/i);
 
-        if (currentMatch) totalPages = currentPage = parseInt(currentMatch[1], 10);
+        if (currentMatch) currentPage = parseInt(currentMatch[1], 10);
         if (maxMatch) totalPages = parseInt(maxMatch[1], 10);
+        if (totalPages < currentPage) totalPages = currentPage;
 
         return JSON.stringify({
             "items": items,
             "pagination": { 
                 "currentPage": currentPage, 
-                "totalPages": 100, // ĐÃ SỬA: Thay vì fix cứng 10, ta dùng biến totalPages vừa tìm được
+                "totalPages": 10, // ĐÃ SỬA: Đồng bộ đúng biến totalPages động
                 "totalItems": 46 * totalPages,
                 "itemsPerPage": 46
             }
