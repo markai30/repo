@@ -2,6 +2,13 @@
     "version": 1,
     "plugins": [
         {
+            "id": "viet69",
+            "name": "viet69",
+            "version": "1.0",
+            "scriptUrl": "https://raw.githubusercontent.com/markai30/repo/main/plugins/viet69_plugin.js",
+            "iconUrl": "https://sexmupxinh.net/static/img/logo.png"
+        },
+        {
             "id": "haysex",
             "name": "Haysex",
             "version": "1.0",
